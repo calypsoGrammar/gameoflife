@@ -4,13 +4,173 @@ import Alpine from 'alpinejs';
 window.Alpine = Alpine;
 Alpine.start();
 
+const svg_down = `<svg
+width="24"
+height="24"
+viewBox="0 0 24 24"
+fill="none"
+xmlns="http://www.w3.org/2000/svg"
+>
+<path
+  d="M6.34317 7.75732L4.92896 9.17154L12 16.2426L19.0711 9.17157L17.6569 7.75735L12 13.4142L6.34317 7.75732Z"
+  fill="currentColor"
+/>
+</svg>`;
+
+const svg_grid = `<svg
+width="24"
+height="24"
+viewBox="0 0 24 24"
+fill="none"
+xmlns="http://www.w3.org/2000/svg"
+>
+<path d="M7 7V11H11V7H7Z" fill="currentColor" />
+<path d="M13 7H17V11H13V7Z" fill="currentColor" />
+<path d="M13 13V17H17V13H13Z" fill="currentColor" />
+<path d="M7 13H11V17H7V13Z" fill="currentColor" />
+<path
+  fill-rule="evenodd"
+  clip-rule="evenodd"
+  d="M3 3H21V21H3V3ZM5 5V19H19V5H5Z"
+  fill="currentColor"
+/>
+</svg>`;
+
+const svg_play = `<svg
+width="24"
+height="24"
+viewBox="0 0 24 24"
+fill="none"
+xmlns="http://www.w3.org/2000/svg"
+>
+<path
+  fill-rule="evenodd"
+  clip-rule="evenodd"
+  d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21ZM12 23C18.0751 23 23 18.0751 23 12C23 5.92487 18.0751 1 12 1C5.92487 1 1 5.92487 1 12C1 18.0751 5.92487 23 12 23Z"
+  fill="currentColor"
+/>
+<path d="M16 12L10 16.3301V7.66987L16 12Z" fill="currentColor" />
+</svg>`;
+
+const svg_reset = `<svg
+width="24"
+height="24"
+viewBox="0 0 24 24"
+fill="none"
+xmlns="http://www.w3.org/2000/svg"
+>
+<path
+  d="M5.33929 4.46777H7.33929V7.02487C8.52931 6.08978 10.0299 5.53207 11.6607 5.53207C15.5267 5.53207 18.6607 8.66608 18.6607 12.5321C18.6607 16.3981 15.5267 19.5321 11.6607 19.5321C9.51025 19.5321 7.58625 18.5623 6.30219 17.0363L7.92151 15.8515C8.83741 16.8825 10.1732 17.5321 11.6607 17.5321C14.4222 17.5321 16.6607 15.2935 16.6607 12.5321C16.6607 9.77065 14.4222 7.53207 11.6607 7.53207C10.5739 7.53207 9.56805 7.87884 8.74779 8.46777L11.3393 8.46777V10.4678H5.33929V4.46777Z"
+  fill="currentColor"
+/>
+</svg>`;
+
+const svg_step = `<svg
+width="24"
+height="24"
+viewBox="0 0 24 24"
+fill="none"
+xmlns="http://www.w3.org/2000/svg"
+>
+<path
+  fill-rule="evenodd"
+  clip-rule="evenodd"
+  d="M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21ZM1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12ZM14 9C14 8.44772 14.4477 8 15 8C15.5523 8 16 8.44772 16 9V15C16 15.5523 15.5523 16 15 16C14.4477 16 14 15.5523 14 15V9ZM13 12L7 15.4641V8.5359L13 12Z"
+  fill="currentColor"
+/>
+</svg>`;
+
+const svg_pause = `<svg
+width="24"
+height="24"
+viewBox="0 0 24 24"
+fill="none"
+xmlns="http://www.w3.org/2000/svg"
+>
+<path d="M9 9H11V15H9V9Z" fill="currentColor" />
+<path d="M15 15H13V9H15V15Z" fill="currentColor" />
+<path
+  fill-rule="evenodd"
+  clip-rule="evenodd"
+  d="M23 12C23 18.0751 18.0751 23 12 23C5.92487 23 1 18.0751 1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12ZM21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+  fill="currentColor"
+/>
+</svg>`;
+
+const svg_theme = `<svg
+width="24"
+height="24"
+viewBox="0 0 24 24"
+fill="none"
+xmlns="http://www.w3.org/2000/svg"
+>
+<path
+  d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8V16Z"
+  fill="currentColor"
+/>
+<path
+  fill-rule="evenodd"
+  clip-rule="evenodd"
+  d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4V8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16V20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4Z"
+  fill="currentColor"
+/>
+</svg>`;
+
+const svg_up = `<svg
+width="24"
+height="24"
+viewBox="0 0 24 24"
+fill="none"
+xmlns="http://www.w3.org/2000/svg"
+>
+<path
+  d="M17.6569 16.2427L19.0711 14.8285L12.0001 7.75739L4.92896 14.8285L6.34317 16.2427L12.0001 10.5858L17.6569 16.2427Z"
+  fill="currentColor"
+/>
+</svg>`;
+
+const svg_download = `<?xml version="1.0" encoding="utf-8"?>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path opacity="0.5" fill-rule="evenodd" clip-rule="evenodd" d="M3 14.25C3.41421 14.25 3.75 14.5858 3.75 15C3.75 16.4354 3.75159 17.4365 3.85315 18.1919C3.9518 18.9257 4.13225 19.3142 4.40901 19.591C4.68577 19.8678 5.07435 20.0482 5.80812 20.1469C6.56347 20.2484 7.56459 20.25 9 20.25H15C16.4354 20.25 17.4365 20.2484 18.1919 20.1469C18.9257 20.0482 19.3142 19.8678 19.591 19.591C19.8678 19.3142 20.0482 18.9257 20.1469 18.1919C20.2484 17.4365 20.25 16.4354 20.25 15C20.25 14.5858 20.5858 14.25 21 14.25C21.4142 14.25 21.75 14.5858 21.75 15V15.0549C21.75 16.4225 21.75 17.5248 21.6335 18.3918C21.5125 19.2919 21.2536 20.0497 20.6517 20.6516C20.0497 21.2536 19.2919 21.5125 18.3918 21.6335C17.5248 21.75 16.4225 21.75 15.0549 21.75H8.94513C7.57754 21.75 6.47522 21.75 5.60825 21.6335C4.70814 21.5125 3.95027 21.2536 3.34835 20.6517C2.74643 20.0497 2.48754 19.2919 2.36652 18.3918C2.24996 17.5248 2.24998 16.4225 2.25 15.0549C2.25 15.0366 2.25 15.0183 2.25 15C2.25 14.5858 2.58579 14.25 3 14.25Z" fill="currentColor"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M12 16.75C12.2106 16.75 12.4114 16.6615 12.5535 16.5061L16.5535 12.1311C16.833 11.8254 16.8118 11.351 16.5061 11.0715C16.2004 10.792 15.726 10.8132 15.4465 11.1189L12.75 14.0682V3C12.75 2.58579 12.4142 2.25 12 2.25C11.5858 2.25 11.25 2.58579 11.25 3V14.0682L8.55353 11.1189C8.27403 10.8132 7.79963 10.792 7.49393 11.0715C7.18823 11.351 7.16698 11.8254 7.44648 12.1311L11.4465 16.5061C11.5886 16.6615 11.7894 16.75 12 16.75Z" fill="currentColor"/>
+</svg>`;
+
+const NAV = document.getElementById("NAV");
+const MENU = document.getElementById("MENU");
+
 const PLAY = document.getElementById("PLAY");
 const PAUSE = document.getElementById("PAUSE");
 const STEP = document.getElementById("STEP");
 const RESET = document.getElementById("RESET");
 const COUNT = document.getElementById("COUNT");
-const GRID = document.getElementById("GRID");
+const LOC = document.getElementById("LOC");
+
+const UP = document.getElementById("UP");
+const DOWN = document.getElementById("DOWN");
+
 const FREQUENCY = document.getElementById("FREQUENCY");
+const GRID = document.getElementById("GRID");
+const THEME = document.getElementById("THEME");
+const COL = document.getElementById("COL");
+const NAME = document.getElementById("NAME");
+const DOWNLOAD = document.getElementById("DOWNLOAD");
+const SELECT = document.getElementById("SELECT");
+const IMPORT = document.getElementById("IMPORT");
+const LOAD = document.getElementById("LOAD");
+const FILE_TO_LOAD = document.getElementById("FILE_TO_LOAD");
+
+PLAY.innerHTML = svg_play.trim();
+PAUSE.innerHTML = svg_pause.trim();
+STEP.innerHTML = svg_step.trim();
+RESET.innerHTML = svg_reset.trim();
+
+UP.innerHTML = svg_up.trim();
+DOWN.innerHTML = svg_down.trim();
+
+GRID.innerHTML = svg_grid.trim();
+THEME.innerHTML = svg_theme.trim();
+DOWNLOAD.innerHTML = svg_download.trim();
+
 const CANVAS = document.getElementById("CANVAS");
 const c = CANVAS.getContext("2d");
 
@@ -18,7 +178,24 @@ PLAY.onclick = function(){ window.gol.play() };
 PAUSE.onclick = function(){ window.gol.stop() };
 STEP.onclick = function(){ window.gol.step() };
 RESET.onclick = function(){ window.gol.reset() };
+
 GRID.onclick = function(){ window.gol.toggle_grid() };
+THEME.onclick = function(){ window.gol.toggle_dark() };
+COL.onchange = function() { window.gol.change_col() };
+DOWNLOAD.onclick = function(){ window.gol.download() };
+SELECT.onclick = function(){ IMPORT.click() };
+IMPORT.addEventListener('change', function() {
+  const selected = this.files[0];
+  if(selected)
+  {
+    FILE_TO_LOAD.innerHTML = selected.name;
+  }
+  else
+  {
+    FILE_TO_LOAD.innerHTML = '';
+  }
+});
+LOAD.onclick = function(){ window.gol.import() };
 
 class Square
 {
@@ -80,6 +257,13 @@ class GameOfLife
   {
     this.debug = false;
     this.grid = true;
+    this.dark = false;
+    this.edit = true;
+
+    this.white = '#fafafa';
+    this.black = '#323232';
+    this.col = '#af1919';
+    this.col2 = '#1919af';
 
     this.interval = null;
     this.generations = 0;
@@ -92,16 +276,19 @@ class GameOfLife
     this.calculate_dimensions(0);
     this.offset_x = 0;
     this.offset_y = 0;
+    this.loc();
     this.saved_click = new Vector(null, null);
     this.alive = [];
     this.purgatory = [];
     this.draw();
+    this.update_menus();
   }
 
   reset()
   {
     this.debug = false;
     this.grid = true;
+    this.edit = true;
 
     clearInterval(this.interval);
     this.interval = null;
@@ -116,15 +303,33 @@ class GameOfLife
     this.saved_click = new Vector(null, null);
     this.alive = [];
     this.purgatory = [];
+    this.loc();
     this.draw();
+    this.update_menus();
+    PLAY.style.display = '';
+    PAUSE.style.display = 'none';
+  }
+
+  loc()
+  {
+    LOC.innerHTML = '(' + -this.offset_x + ', ' + -this.offset_y + ')';
+  }
+
+  change_col()
+  {
+    this.col = COL.value;
   }
 
   play()
   {
     if(this.interval === null)
     {
+      if(FREQUENCY.value < 0.01)FREQUENCY.value = 0.01;
+      if(FREQUENCY.value > 10)FREQUENCY.value = 10;
       this.interval = setInterval(this.iterate.bind(this), FREQUENCY.value * 1000);
     }
+    PLAY.style.display = 'none';
+    PAUSE.style.display = '';
   }
 
   stop()
@@ -134,18 +339,61 @@ class GameOfLife
       clearInterval(this.interval);
       this.interval = null;
     }
+    PLAY.style.display = '';
+    PAUSE.style.display = 'none';
   }
 
   step()
   {
     if(this.interval !== null) this.stop();
     this.iterate();
+    PLAY.style.display = '';
+    PAUSE.style.display = 'none';
   }
 
   toggle_grid()
   {
     this.grid = !this.grid;
     this.draw();
+  }
+
+  toggle_dark()
+  {
+    this.dark = !this.dark;
+    this.draw();
+    this.update_menus();
+  }
+
+  update_menus()
+  {
+    if(this.dark)
+    {
+      NAV.classList.remove('bg-mod_light');
+      MENU.classList.remove('bg-mod_light');
+
+      NAV.classList.add('bg-mod_dark');
+      MENU.classList.add('bg-mod_dark');
+
+      NAV.classList.remove('text-mod_dark');
+      MENU.classList.remove('text-mod_dark');
+
+      NAV.classList.add('text-mod_light');
+      MENU.classList.add('text-mod_light');
+    }
+    else
+    {
+      NAV.classList.remove('bg-mod_dark');
+      MENU.classList.remove('bg-mod_dark');
+
+      NAV.classList.add('bg-mod_light');
+      MENU.classList.add('bg-mod_light');
+
+      NAV.classList.remove('text-mod_light');
+      MENU.classList.remove('text-mod_light');
+
+      NAV.classList.add('text-mod_dark');
+      MENU.classList.add('text-mod_dark');
+    }
   }
 
   calculate_dimensions(zoom_in)
@@ -180,6 +428,7 @@ class GameOfLife
 
   query_click(x, y)
   {
+    if(!this.edit) return;
     if(x > this.offset_x_render && x < this.width - this.offset_x_render && y > this.offset_y_render && y < this.width - this.offset_y_render)
     {
       let mod_x = x % this.square_width;
@@ -275,6 +524,7 @@ class GameOfLife
 
       this.calculate_dimensions(0);
       this.draw();
+      this.loc();
 
       this.saved_click.x = null;
       this.saved_click.y = null;
@@ -323,6 +573,7 @@ class GameOfLife
     {
       this.offset_x -= Math.max(1, Math.floor(this.rows/10));
     }
+    this.loc();
     this.calculate_dimensions(0);
     this.draw();
   }
@@ -344,6 +595,7 @@ class GameOfLife
 
   count()
   {
+    if(this.edit) this.edit = false;
     this.purgatory = [];
 
     for(let i = 0; i < this.alive.length; i++)
@@ -409,11 +661,16 @@ class GameOfLife
 
   draw()
   {
-    c.clearRect(0, 0, this.width, this.height);
+    if(this.dark) c.fillStyle = this.black;
+    else c.fillStyle = this.white;
+
+    c.fillRect(0, 0, this.width, this.height);
 
     if(this.grid)
     {
-      c.strokeStyle = "black";
+      if(this.dark) c.strokeStyle = this.white;
+      else c.strokeStyle = this.black;
+
       c.lineWidth = 0.1;
   
       for(let i = 0; i <= this.columns; i++)
@@ -441,7 +698,9 @@ class GameOfLife
     let min_y = -this.offset_y;
     let max_y = -this.offset_y + this.rows;
 
-    c.fillStyle = "rgb(175,25,25)";
+    if(this.dark) c.fillStyle = this.col;
+    else c.fillStyle = this.col;
+
     for(let i = 0; i < this.alive.length; i++)
     {
       if(
@@ -465,7 +724,9 @@ class GameOfLife
 
     if(this.debug)
     {
-      c.fillStyle = "rgb(50,50,175)";
+      if(this.dark) c.fillStyle = this.col2;
+      else c.fillStyle = this.col2;
+
       for(let i = 0; i < this.purgatory.length; i++)
       {
         c.fillRect(
@@ -475,11 +736,10 @@ class GameOfLife
         this.square_width
         );
       }
-    }
 
-    if(this.debug)
-    {
-      c.fillStyle = "rgb(50,50,50)";
+      if(this.dark) c.fillStyle = this.light;
+      else c.fillStyle = this.dark;
+
       for(let x = 0; x < this.columns; x++)
       {
         for(let y = 0; y < this.rows; y++)
@@ -496,6 +756,108 @@ class GameOfLife
         }
       }
     }
+  }
+
+  download()
+  {
+    if(this.alive.length === 0)
+    {
+      window.alert('no information to download');
+      return;
+    }
+
+    let file_name = '';
+    if(NAME.value === null) file_name = new Date().toISOString().replace(/[-:]/g, "").replace(/[.]/g, "_");
+    else file_name = NAME.value;
+
+    const settings = {
+      generations:this.generations,
+      col:this.col,
+      offset_x:this.offset_x,
+      offset_y:this.offset_y,
+      square_width:this.square_width,
+      frequency:FREQUENCY.value,
+      grid:this.grid,
+      dark:this.dark,
+      name:file_name,
+      edit:this.edit,
+    };
+
+    const data = {
+      alive: this.alive,
+      settings: settings
+    };
+
+    const json_data = JSON.stringify(data, null, 2);
+    const blob = new Blob([json_data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const filename = `${file_name}.json`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  import()
+  {
+    const file = IMPORT.files[0];
+    if(file === null)
+    {
+      window.alert('no file selected');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) =>
+    {
+      const json_data = event.target.result;
+      try
+      {
+        const imported = JSON.parse(json_data);
+        if(imported.hasOwnProperty('alive'))
+        {
+          this.alive = imported.alive.map(obj => new Square(obj.x, obj.y, obj.count));
+        }
+        else
+        {
+          console.warn('no data found.');
+        }
+
+        if(imported.hasOwnProperty('settings'))
+        {
+          const settings = imported.settings;
+
+          this.generations = settings.generations,
+          this.col = settings.col,
+          COL.value = settings.col,
+          this.square_width = settings.square_width,
+          this.offset_x = settings.offset_x,
+          this.offset_y = settings.offset_y,
+          FREQUENCY.value = settings.frequency,
+          this.grid = settings.grid,
+          this.dark = settings.dark,
+          this.edit = settings.edit,
+          NAME.value = settings.name,
+          this.calculate_dimensions(0);
+          this.loc();
+          this.update_menus();
+          this.draw();
+        }
+        else
+        {
+          console.warn('no settings found');
+        }
+      }
+      catch(error)
+      {
+        console.error('error importing data');
+      }
+    };
+    reader.readAsText(file);
+    this.draw();
   }
 }
 
@@ -516,49 +878,59 @@ function start()
   window.gol = new GameOfLife(50, CANVAS.width, CANVAS.height);
 }
 
-document.addEventListener('wheel', function(event) {
-  if(event.deltaY < 0) window.gol.zoom_in();
-  else if(event.deltaY > 0) window.gol.zoom_out();
+document.addEventListener('wheel', function(event)
+{
+  if(MENU.style.display === 'none')
+  {
+    if(event.deltaY < 0) window.gol.zoom_in();
+    else if(event.deltaY > 0) window.gol.zoom_out();
+  }
 });
 
 document.onkeydown = function(event)
 {
-  if(event.key == "m") window.gol.zoom_in();
-  if(event.key == "n") window.gol.zoom_out();
-
-  if(event.key == "w") window.gol.move_offset('w');
-  if(event.key == "a") window.gol.move_offset('a');
-  if(event.key == "s") window.gol.move_offset('s');
-  if(event.key == "d") window.gol.move_offset('d');
-
-  if(event.key == "c")
+  if(MENU.style.display === 'none')
   {
-    window.gol.count();
-    window.gol.draw();
+    if(event.key == "m") window.gol.zoom_in();
+    if(event.key == "n") window.gol.zoom_out();
+  
+    if(event.key == "w") window.gol.move_offset('w');
+    if(event.key == "a") window.gol.move_offset('a');
+    if(event.key == "s") window.gol.move_offset('s');
+    if(event.key == "d") window.gol.move_offset('d');
+  
+    if(event.key == "c")
+    {
+      window.gol.count();
+      window.gol.draw();
+    }
+    if(event.key == "v")
+    {
+      window.gol.dead_or_alive();
+      window.gol.draw();
+    }
+    if(event.key == "i") window.gol.iterate();
   }
-  if(event.key == "v")
-  {
-    window.gol.dead_or_alive();
-    window.gol.draw();
-  }
-  if(event.key == "i") window.gol.iterate();
 }
 
 CANVAS.onmousedown = function(event)
 {
-  if(event.button === 0)
+  if(MENU.style.display === 'none')
   {
-    let rect = CANVAS.getBoundingClientRect();
-    let x = event.clientX - rect.left;
-    let y = event.clientY - rect.top;
-    window.gol.query_click(x, y);
-  }
-  if(event.button === 1 || event.button === 2)
-  {
-    let rect = CANVAS.getBoundingClientRect();
-    let x = event.clientX - rect.left;
-    let y = event.clientY - rect.top;
-    window.gol.save_click(x, y);
+    if(event.button === 0)
+    {
+      let rect = CANVAS.getBoundingClientRect();
+      let x = event.clientX - rect.left;
+      let y = event.clientY - rect.top;
+      window.gol.query_click(x, y);
+    }
+    if(event.button === 1 || event.button === 2)
+    {
+      let rect = CANVAS.getBoundingClientRect();
+      let x = event.clientX - rect.left;
+      let y = event.clientY - rect.top;
+      window.gol.save_click(x, y);
+    }
   }
 }
 
@@ -578,12 +950,15 @@ CANVAS.onmousemove = function(event)
 
 CANVAS.onmouseup = function(event)
 {
-  if(event.button === 1 || event.button === 2)
+  if(MENU.style.display === 'none')
   {
-    let rect = CANVAS.getBoundingClientRect();
-    let x = event.clientX - rect.left;
-    let y = event.clientY - rect.top;
-    window.gol.resolve_saved_click(x, y);
+    if(event.button === 1 || event.button === 2)
+    {
+      let rect = CANVAS.getBoundingClientRect();
+      let x = event.clientX - rect.left;
+      let y = event.clientY - rect.top;
+      window.gol.resolve_saved_click(x, y);
+    }
   }
 }
 

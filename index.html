@@ -5,37 +5,145 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="./src/stylesheets/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
     <title>Game of Life</title>
   </head>
-  <body class='min-h-screen max-h-screen'>
+  <body
+  class='min-h-screen max-h-screen font-f1 text-md'
+  x-data="{
+    menu:true,
+  }"
+  >
+
+  <div class='bg-mod_dark text-mod_light' hidden></div>
 
     <nav
-    class="z-30 rounded-lg bg-white fixed top-[6px] h-12 left-1/2 transform -translate-x-1/2 flex flex-row justify-around items-center shadow-lg w-full max-w-xl">
-      <button id="PLAY" class="flex justify-center items-center active:scale-95 hover:scale-105">
-        <img src="./src/public/playCircled.svg">
-      </button>
-      <button id="PAUSE" class="flex justify-center items-center active:scale-95 hover:scale-105">
-        <img src="./src/public/playPause.svg">
-      </button>
-      <button id="STEP" class="flex justify-center items-center active:scale-95 hover:scale-105">
-        <img src="./src/public/playNext.svg">
-      </button>
-      <button id="RESET" class="flex justify-center items-center active:scale-95 hover:scale-105">
-        <img src="./src/public/undo.svg">
-      </button>
-      <input type="number" class="text-center mx-2 w-16" id="FREQUENCY" min="0.01" max="10" step="0.01" value="0.25">
-      <button id="GRID" class="flex justify-center items-center active:scale-95 hover:scale-105">
-        <img src="./src/public/grid.svg">
-      </button>
-      <button id="COUNT" class="flex justify-center items-center cursor-auto w-16">
+    id="NAV"
+    class="z-30 rounded-lg fixed bg-mod_light text-mod_dark top-[6px] h-12 left-1/2 transform -translate-x-1/2 flex flex-row justify-around items-center shadow-lg w-full max-w-xl">
+      
+      <button
+      id="PLAY"
+      class="flex justify-center items-center active:scale-95 hover:scale-105"
+      ></button>
 
-      </button>
+      <button
+      id="PAUSE"
+      class="flex justify-center items-center active:scale-95 hover:scale-105"
+      style="display:none;"
+      ></button>
+
+      <button
+      id="STEP"
+      class="flex justify-center items-center active:scale-95 hover:scale-105"
+      ></button>
+
+      <button
+      id="RESET"
+      class="flex justify-center items-center active:scale-95 hover:scale-105"
+      ></button>
+
+      <div
+      id="COUNT"
+      class="flex justify-center items-center cursor-auto mx-2"
+      ></div>
+
+      <div
+      id="LOC"
+      class="flex justify-center items-center cursor-auto mx-2"
+      ></div>
+
+      <button
+      id="DOWN"
+      class="flex justify-center items-center active:scale-95 hover:scale-105"
+      x-show="!menu"
+      x-on:click="menu=!menu"
+      ></button>
+      
+      <button
+      id="UP"
+      class="flex justify-center items-center active:scale-95 hover:scale-105"
+      style="display:none;"
+      x-show="menu"
+      x-on:click="menu=!menu"
+      ></button>
+
     </nav>
+
+    <div
+    x-show="menu"
+    id="MENU"
+    class="z-30 rounded-lg bg-mod_light text-mod_dark fixed top-[60px] max-h-[600px] overflow-y-auto left-1/2 transform -translate-x-1/2 py-4 flex flex-col justify-start items-center shadow-lg w-full max-w-xl">
+
+      <div class='flex flex-row justify-between items-center w-[250px]'>
+        <label class='m-2' for="FREQUENCY">frequency</label>
+        <input type="number" class="text-center m-2 bg-mod_light text-mod_dark rounded-lg" id="FREQUENCY" min="0.01" max="10" step="0.01" value="0.25">
+      </div>
+
+      <div class='flex flex-row justify-between items-center w-[250px]'>
+        <label class='m-2' for="FREQUENCY">show grid</label>
+        <button
+        id="GRID"
+        class="flex justify-center items-center m-2 active:scale-95 hover:scale-105"
+        ></button>
+      </div>
+
+      <div class='flex flex-row justify-between items-center w-[250px]'>
+        <label class='m-2' for="THEME">theme</label>
+        <button
+        id="THEME"
+        class="flex justify-center items-center m-2 active:scale-95 hover:scale-105"
+        ></button>
+      </div>
+
+      <label class='m-2' for="COL">colour</label>
+      <input type="color" class="text-center m-2 w-16 h-16" id="COL" value="#af1919" />
+
+      <div class='flex flex-col justify-start items-center my-2'>
+        <label class='m-2' for="DOWNLOAD">download</label>
+        <input
+        id="NAME"
+        class='mx-2 bg-mod_light text-mod_dark rounded-lg border border-mod_dark p-2'
+        type="text"
+        placeholder="name..."
+        />
+        <button
+        id="DOWNLOAD"
+        class="m-2 p-2 active:scale-95 bg-mod_dark text-mod_light rounded-lg hover:bg-mod_dark_light flex justify-center items-center border border-mod_light"
+        ></button>
+      </div>
+
+      <div class='flex flex-col justify-start items-center my-2'>
+        <label class='m-2' for="LOAD">import</label>
+
+        <div
+        class='flex flex-row justify-center items-center'>
+          <input
+          hidden
+          id="IMPORT"
+          type="file"
+          accept=".json" />
+          <button
+          id="SELECT"
+          class="m-2 p-2 active:scale-95 bg-mod_dark text-mod_light rounded-lg hover:bg-mod_dark_light flex justify-center items-center border border-mod_light"
+          >select</button>
+          <button
+          id="LOAD"
+          class="m-2 p-2 active:scale-95 bg-mod_dark text-mod_light rounded-lg hover:bg-mod_dark_light flex justify-center items-center border border-mod_light"
+          >load</button>
+        </div>
+
+        <div id="FILE_TO_LOAD" class="max-w-xl px-2 mx-2"></div>
+
+      </div>
+
+    </div>
     
     <canvas
     id="CANVAS"
     oncontextmenu="return false;"
-    class="fixed top-0 left-0 min-h-screen max-h-screen"></canvas>
+    class="fixed top-0 left-0 min-h-screen max-h-screen text-wrap"></canvas>
 
   </body>
   <script type='module' src="./src/javascripts/main.js"></script>

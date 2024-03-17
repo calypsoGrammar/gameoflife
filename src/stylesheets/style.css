@@ -1,27 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --gridBorder: rgba(150, 150, 160, 1);
-
-  --dead: "#fafaf9";
-  --alive: rgba(250, 100, 100, 1);
-}
-
-[data-state*="dead"]{
-    background-color: var(--dead);
-}
-  
-[data-state*="alive"]{
-    background-color: var(--alive);
-}
-
-.gameButton{
-  color: "#fafaf9";
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--gridBorder);
-  box-sizing: border-box;
-  float: left;
-}
