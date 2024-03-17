@@ -21,124 +21,130 @@
 
     <nav
     id="NAV"
-    class="z-30 rounded-lg fixed bg-mod_light text-mod_dark top-[6px] h-12 left-1/2 transform -translate-x-1/2 flex flex-row justify-around items-center shadow-lg w-full max-w-xl">
-      
-      <button
-      id="PLAY"
-      class="flex justify-center items-center active:scale-95 hover:scale-105"
-      ></button>
-
-      <button
-      id="PAUSE"
-      class="flex justify-center items-center active:scale-95 hover:scale-105"
-      style="display:none;"
-      ></button>
-
-      <button
-      id="STEP"
-      class="flex justify-center items-center active:scale-95 hover:scale-105"
-      ></button>
-
-      <button
-      id="RESET"
-      class="flex justify-center items-center active:scale-95 hover:scale-105"
-      ></button>
+    class="z-30 absolute bg-mod_light text-mod_dark top-[6px] left-1/2 transform -translate-x-1/2 flex flex-col justify-start items-center shadow-lg w-full max-w-xl rounded-lg">
 
       <div
-      id="COUNT"
-      class="flex justify-center items-center cursor-auto mx-2"
-      ></div>
+      class="flex flex-row justify-around items-center w-full h-12"
+      >
 
-      <div
-      id="LOC"
-      class="flex justify-center items-center cursor-auto mx-2"
-      ></div>
-
-      <button
-      id="DOWN"
-      class="flex justify-center items-center active:scale-95 hover:scale-105"
-      x-show="!menu"
-      x-on:click="menu=!menu"
-      ></button>
-      
-      <button
-      id="UP"
-      class="flex justify-center items-center active:scale-95 hover:scale-105"
-      style="display:none;"
-      x-show="menu"
-      x-on:click="menu=!menu"
-      ></button>
-
-    </nav>
-
-    <div
-    x-show="menu"
-    id="MENU"
-    class="z-30 rounded-lg bg-mod_light text-mod_dark fixed top-[60px] max-h-[600px] overflow-y-auto left-1/2 transform -translate-x-1/2 py-4 flex flex-col justify-start items-center shadow-lg w-full max-w-xl">
-
-      <div class='flex flex-row justify-between items-center w-[250px]'>
-        <label class='m-2' for="FREQUENCY">frequency</label>
-        <input type="number" class="text-center m-2 bg-mod_light text-mod_dark rounded-lg" id="FREQUENCY" min="0.01" max="10" step="0.01" value="0.25">
-      </div>
-
-      <div class='flex flex-row justify-between items-center w-[250px]'>
-        <label class='m-2' for="FREQUENCY">show grid</label>
         <button
-        id="GRID"
-        class="flex justify-center items-center m-2 active:scale-95 hover:scale-105"
+        id="PLAY"
+        class="flex justify-center items-center active:scale-95 hover:scale-105"
         ></button>
-      </div>
 
-      <div class='flex flex-row justify-between items-center w-[250px]'>
-        <label class='m-2' for="THEME">theme</label>
         <button
-        id="THEME"
-        class="flex justify-center items-center m-2 active:scale-95 hover:scale-105"
+        id="PAUSE"
+        class="flex justify-center items-center active:scale-95 hover:scale-105"
+        style="display:none;"
         ></button>
-      </div>
 
-      <label class='m-2' for="COL">colour</label>
-      <input type="color" class="text-center m-2 w-16 h-16" id="COL" value="#af1919" />
-
-      <div class='flex flex-col justify-start items-center my-2'>
-        <label class='m-2' for="DOWNLOAD">download</label>
-        <input
-        id="NAME"
-        class='mx-2 bg-mod_light text-mod_dark rounded-lg border border-mod_dark p-2'
-        type="text"
-        placeholder="name..."
-        />
         <button
-        id="DOWNLOAD"
-        class="m-2 p-2 active:scale-95 bg-mod_dark text-mod_light rounded-lg hover:bg-mod_dark_light flex justify-center items-center border border-mod_light"
+        id="STEP"
+        class="flex justify-center items-center active:scale-95 hover:scale-105"
         ></button>
-      </div>
 
-      <div class='flex flex-col justify-start items-center my-2'>
-        <label class='m-2' for="LOAD">import</label>
+        <button
+        id="RESET"
+        class="flex justify-center items-center active:scale-95 hover:scale-105"
+        ></button>
 
         <div
-        class='flex flex-row justify-center items-center'>
-          <input
-          hidden
-          id="IMPORT"
-          type="file"
-          accept=".json" />
-          <button
-          id="SELECT"
-          class="m-2 p-2 active:scale-95 bg-mod_dark text-mod_light rounded-lg hover:bg-mod_dark_light flex justify-center items-center border border-mod_light"
-          >select</button>
-          <button
-          id="LOAD"
-          class="m-2 p-2 active:scale-95 bg-mod_dark text-mod_light rounded-lg hover:bg-mod_dark_light flex justify-center items-center border border-mod_light"
-          >load</button>
-        </div>
+        id="COUNT"
+        class="flex justify-center items-center cursor-auto mx-2"
+        ></div>
 
-        <div id="FILE_TO_LOAD" class="max-w-xl px-2 mx-2"></div>
+        <div
+        id="LOC"
+        class="flex justify-center items-center cursor-auto mx-2"
+        ></div>
+
+        <button
+        id="DOWN"
+        class="flex justify-center items-center active:scale-95 hover:scale-105"
+        x-show="!menu"
+        x-on:click="menu=!menu"
+        ></button>
+        
+        <button
+        id="UP"
+        class="flex justify-center items-center active:scale-95 hover:scale-105"
+        style="display:none;"
+        x-show="menu"
+        x-on:click="menu=!menu"
+        ></button>
 
       </div>
 
-    </div>
+      <div
+      x-show="menu"
+      id="MENU"
+      class="relative rounded-lg bg-mod_light text-mod_dark mt-4 max-h-[500px] overflow-hidden overflow-y-auto py-4 flex flex-col justify-start items-center w-full">
+
+        <div class='flex flex-row justify-between items-center w-[250px]'>
+          <label class='m-2' for="FREQUENCY">frequency</label>
+          <input type="number" class="text-center m-2 bg-mod_light text-mod_dark rounded-lg" id="FREQUENCY" min="0.01" max="10" step="0.01" value="0.25">
+        </div>
+
+        <div class='flex flex-row justify-between items-center w-[250px]'>
+          <label class='m-2' for="FREQUENCY">show grid</label>
+          <button
+          id="GRID"
+          class="flex justify-center items-center m-2 active:scale-95 hover:scale-105"
+          ></button>
+        </div>
+
+        <div class='flex flex-row justify-between items-center w-[250px]'>
+          <label class='m-2' for="THEME">theme</label>
+          <button
+          id="THEME"
+          class="flex justify-center items-center m-2 active:scale-95 hover:scale-105"
+          ></button>
+        </div>
+
+        <label class='m-2' for="COL">colour</label>
+        <input type="color" class="text-center m-2 w-16 h-16" id="COL" value="#af1919" />
+
+        <div class='flex flex-col justify-start items-center my-2'>
+          <label class='m-2' for="DOWNLOAD">download</label>
+          <input
+          id="NAME"
+          class='mx-2 bg-mod_light text-mod_dark rounded-lg border border-mod_dark p-2'
+          type="text"
+          placeholder="name..."
+          />
+          <button
+          id="DOWNLOAD"
+          class="m-2 p-2 active:scale-95 bg-mod_dark text-mod_light rounded-lg hover:bg-mod_dark_light flex justify-center items-center border border-mod_light"
+          ></button>
+        </div>
+
+        <div class='flex flex-col justify-start items-center my-2'>
+          <label class='m-2' for="LOAD">import</label>
+
+          <div
+          class='flex flex-row justify-center items-center'>
+            <input
+            hidden
+            id="IMPORT"
+            type="file"
+            accept=".json" />
+            <button
+            id="SELECT"
+            class="m-2 p-2 active:scale-95 bg-mod_dark text-mod_light rounded-lg hover:bg-mod_dark_light flex justify-center items-center border border-mod_light"
+            >select</button>
+            <button
+            id="LOAD"
+            class="m-2 p-2 active:scale-95 bg-mod_dark text-mod_light rounded-lg hover:bg-mod_dark_light flex justify-center items-center border border-mod_light"
+            >load</button>
+          </div>
+
+          <div id="FILE_TO_LOAD" class="max-w-xl px-2 mx-2"></div>
+
+        </div>
+
+      </div>
+
+    </nav>
     
     <canvas
     id="CANVAS"
