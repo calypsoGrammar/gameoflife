@@ -101,8 +101,16 @@
           ></button>
         </div>
 
+        <div class='flex flex-row justify-between items-center w-[250px]'>
+          <label class='m-2' for="HIDE_CONTROLS">controls</label>
+          <button
+          id="HIDE_CONTROLS"
+          class="flex justify-center items-center m-2 active:scale-95 hover:scale-105"
+          ></button>
+        </div>
+
         <label class='m-2' for="COL">colour</label>
-        <input type="color" class="text-center m-2 w-16 h-16" id="COL" value="#af1919" />
+        <input type="color" class="text-center m-2" id="COL" value="#af1919" style="min-height:50px; min-width: 50px" />
 
         <div class='flex flex-col justify-start items-center my-2'>
           <label class='m-2' for="DOWNLOAD">download</label>
@@ -150,6 +158,48 @@
     id="CANVAS"
     oncontextmenu="return false;"
     class="fixed top-0 left-0 min-h-screen max-h-screen text-wrap"></canvas>
+
+    <nav
+    id="CONTROLS"
+    class="z-30 absolute bg-mod_light text-mod_dark bottom-[6px] left-1/2 transform -translate-x-1/2 flex flex-col justify-start items-center shadow-lg w-full max-w-xl rounded-lg">
+
+      <div
+      class="flex flex-row justify-around items-center w-full h-12"
+      >
+
+        <button
+        id="MOVE_LEFT"
+        class="flex justify-center items-center active:scale-95 hover:scale-105"
+        ></button>
+
+        <button
+        id="MOVE_UP"
+        class="flex justify-center items-center active:scale-95 hover:scale-105"
+        ></button>
+
+        <button
+        id="MOVE_DOWN"
+        class="flex justify-center items-center active:scale-95 hover:scale-105"
+        ></button>
+
+        <button
+        id="MOVE_RIGHT"
+        class="flex justify-center items-center active:scale-95 hover:scale-105"
+        ></button>
+
+        <button
+        id="ZOOM_OUT"
+        class="flex justify-center items-center active:scale-95 hover:scale-105"
+        >-</button>
+
+        <button
+        id="ZOOM_IN"
+        class="flex justify-center items-center active:scale-95 hover:scale-105"
+        >+</button>
+
+      </div>
+
+    </div>
 
   </body>
   <script type='module' src="./src/javascripts/main.js"></script>

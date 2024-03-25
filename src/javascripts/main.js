@@ -135,6 +135,53 @@ const svg_download = `<?xml version="1.0" encoding="utf-8"?>
 <path fill-rule="evenodd" clip-rule="evenodd" d="M12 16.75C12.2106 16.75 12.4114 16.6615 12.5535 16.5061L16.5535 12.1311C16.833 11.8254 16.8118 11.351 16.5061 11.0715C16.2004 10.792 15.726 10.8132 15.4465 11.1189L12.75 14.0682V3C12.75 2.58579 12.4142 2.25 12 2.25C11.5858 2.25 11.25 2.58579 11.25 3V14.0682L8.55353 11.1189C8.27403 10.8132 7.79963 10.792 7.49393 11.0715C7.18823 11.351 7.16698 11.8254 7.44648 12.1311L11.4465 16.5061C11.5886 16.6615 11.7894 16.75 12 16.75Z" fill="currentColor"/>
 </svg>`;
 
+const svg_right = `<svg
+width="24"
+height="24"
+viewBox="0 0 24 24"
+fill="none"
+xmlns="http://www.w3.org/2000/svg"
+>
+<path
+  d="M10.5858 6.34317L12 4.92896L19.0711 12L12 19.0711L10.5858 17.6569L16.2427 12L10.5858 6.34317Z"
+  fill="currentColor"
+/>
+</svg>`;
+
+const svg_left = `<svg
+width="24"
+height="24"
+viewBox="0 0 24 24"
+fill="currentColor"
+xmlns="http://www.w3.org/2000/svg"
+>
+<path
+  d="M16.2426 6.34317L14.8284 4.92896L7.75739 12L14.8285 19.0711L16.2427 17.6569L10.5858 12L16.2426 6.34317Z"
+  fill="currentColor"
+/>
+</svg>`;
+
+const svg_eye = `<svg
+width="24"
+height="24"
+viewBox="0 0 24 24"
+fill="none"
+xmlns="http://www.w3.org/2000/svg"
+>
+<path
+  fill-rule="evenodd"
+  clip-rule="evenodd"
+  d="M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12ZM14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12C10 10.8954 10.8954 10 12 10C13.1046 10 14 10.8954 14 12Z"
+  fill="currentColor"
+/>
+<path
+  fill-rule="evenodd"
+  clip-rule="evenodd"
+  d="M12 3C17.5915 3 22.2898 6.82432 23.6219 12C22.2898 17.1757 17.5915 21 12 21C6.40848 21 1.71018 17.1757 0.378052 12C1.71018 6.82432 6.40848 3 12 3ZM12 19C7.52443 19 3.73132 16.0581 2.45723 12C3.73132 7.94186 7.52443 5 12 5C16.4756 5 20.2687 7.94186 21.5428 12C20.2687 16.0581 16.4756 19 12 19Z"
+  fill="currentColor"
+/>
+</svg>`;
+
 const NAV = document.getElementById("NAV");
 const MENU = document.getElementById("MENU");
 
@@ -151,6 +198,7 @@ const DOWN = document.getElementById("DOWN");
 const FREQUENCY = document.getElementById("FREQUENCY");
 const GRID = document.getElementById("GRID");
 const THEME = document.getElementById("THEME");
+const HIDE_CONTROLS = document.getElementById("HIDE_CONTROLS");
 const COL = document.getElementById("COL");
 const NAME = document.getElementById("NAME");
 const DOWNLOAD = document.getElementById("DOWNLOAD");
@@ -158,6 +206,15 @@ const SELECT = document.getElementById("SELECT");
 const IMPORT = document.getElementById("IMPORT");
 const LOAD = document.getElementById("LOAD");
 const FILE_TO_LOAD = document.getElementById("FILE_TO_LOAD");
+
+const CONTROLS = document.getElementById("CONTROLS");
+
+const MOVE_LEFT = document.getElementById("MOVE_LEFT");
+const MOVE_UP = document.getElementById("MOVE_UP");
+const MOVE_DOWN = document.getElementById("MOVE_DOWN");
+const MOVE_RIGHT = document.getElementById("MOVE_RIGHT");
+const ZOOM_OUT = document.getElementById("ZOOM_OUT");
+const ZOOM_IN = document.getElementById("ZOOM_IN");
 
 PLAY.innerHTML = svg_play.trim();
 PAUSE.innerHTML = svg_pause.trim();
@@ -169,7 +226,13 @@ DOWN.innerHTML = svg_down.trim();
 
 GRID.innerHTML = svg_grid.trim();
 THEME.innerHTML = svg_theme.trim();
+HIDE_CONTROLS.innerHTML = svg_eye.trim();
 DOWNLOAD.innerHTML = svg_download.trim();
+
+MOVE_LEFT.innerHTML = svg_left.trim();
+MOVE_UP.innerHTML = svg_up.trim();
+MOVE_DOWN.innerHTML = svg_down.trim();
+MOVE_RIGHT.innerHTML = svg_right.trim();
 
 const CANVAS = document.getElementById("CANVAS");
 const c = CANVAS.getContext("2d");
@@ -181,6 +244,7 @@ RESET.onclick = function(){ window.gol.reset() };
 
 GRID.onclick = function(){ window.gol.toggle_grid() };
 THEME.onclick = function(){ window.gol.toggle_dark() };
+HIDE_CONTROLS.onclick = function(){ hide_controls() };
 COL.onchange = function() { window.gol.change_col() };
 DOWNLOAD.onclick = function(){ window.gol.download() };
 SELECT.onclick = function(){ IMPORT.click() };
@@ -196,6 +260,14 @@ IMPORT.addEventListener('change', function() {
   }
 });
 LOAD.onclick = function(){ window.gol.import() };
+
+MOVE_LEFT.onclick = function(){ window.gol.move_offset('a') };
+MOVE_RIGHT.onclick = function(){ window.gol.move_offset('d') };
+MOVE_UP.onclick = function(){ window.gol.move_offset('w') };
+MOVE_DOWN.onclick = function(){ window.gol.move_offset('s') };
+
+ZOOM_OUT.onclick = function(){ window.gol.zoom_out() };
+ZOOM_IN.onclick = function(){ window.gol.zoom_in() };
 
 class Square
 {
@@ -859,6 +931,12 @@ class GameOfLife
     reader.readAsText(file);
     this.draw();
   }
+}
+
+function hide_controls()
+{
+  if(CONTROLS.style.display === '') CONTROLS.style.display = 'none';
+  else CONTROLS.style.display = '';
 }
 
 function resize()
