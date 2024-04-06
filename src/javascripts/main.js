@@ -451,6 +451,11 @@ class GameOfLife
 
       NAV.classList.add('text-mod_light');
       MENU.classList.add('text-mod_light');
+
+      CONTROLS.classList.remove('bg-mod_light');
+      CONTROLS.classList.add('bg-mod_dark');
+      CONTROLS.classList.remove('text-mod_dark');
+      CONTROLS.classList.add('text-mod_light');
     }
     else
     {
@@ -465,6 +470,11 @@ class GameOfLife
 
       NAV.classList.add('text-mod_dark');
       MENU.classList.add('text-mod_dark');
+
+      CONTROLS.classList.add('bg-mod_light');
+      CONTROLS.classList.remove('bg-mod_dark');
+      CONTROLS.classList.add('text-mod_dark');
+      CONTROLS.classList.remove('text-mod_light');
     }
   }
 
@@ -503,11 +513,14 @@ class GameOfLife
     if(!this.edit) return;
     if(x > this.offset_x_render && x < this.width - this.offset_x_render && y > this.offset_y_render && y < this.width - this.offset_y_render)
     {
-      let mod_x = x % this.square_width;
-      let mod_y = y % this.square_width;
+      let new_x = x - this.offset_x_render;
+      let new_y = y - this.offset_y_render;
 
-      let loc_x = Math.floor( (x - mod_x) / this.square_width);
-      let loc_y = Math.floor( (y - mod_y) / this.square_width);
+      let mod_x = new_x % this.square_width;
+      let mod_y = new_y % this.square_width;
+
+      let loc_x = Math.floor( (new_x - mod_x) / this.square_width);
+      let loc_y = Math.floor( (new_y - mod_y) / this.square_width);
 
       let offset_loc_x = loc_x - this.offset_x;
       let offset_loc_y = loc_y - this.offset_y;
@@ -1015,10 +1028,8 @@ CANVAS.onmousedown = function(event)
 CANVAS.onmousemove = function(event)
 {
   return;
-  console.log('firing');
   if(window.gol.saved_click.x !== null && window.gol.saved_click.y !== null)
   {
-    console.log('firing again');
     let rect = CANVAS.getBoundingClientRect();
     let x = event.clientX - rect.left;
     let y = event.clientY - rect.top;
