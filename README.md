@@ -29,12 +29,19 @@ npm run preview   # serve the production build locally
 
 ## Deployment (GitHub Pages)
 
-The site is served under `/gameoflife/`, so the `base` in `vite.config.js` must match the repository name. To deploy:
+The site is served at `https://<owner>.github.io/gameoflife/`, so `base` in `vite.config.js` must equal `/<repository name>/`.
 
-1. `npm ci && npm test && npm run build`
-2. Publish the contents of `dist/` as the GitHub Pages source for the repository (Settings → Pages).
+GitHub Pages can only serve a branch root, a branch's `/docs` folder, or a GitHub Actions artifact; it cannot serve `dist/` on `main` directly. There is no automated deploy workflow, so deploy manually to a `gh-pages` branch:
 
-There is no automated deploy workflow; CI only verifies the build.
+```sh
+npm ci && npm test && npm run build
+git add -f dist && git commit -m "Rebuild dist"      # dist is in .gitignore but tracked, so it must be force-added
+git subtree push --prefix dist origin gh-pages
+```
+
+Then in the repository's Settings → Pages, set the source to "Deploy from a branch", branch `gh-pages`, folder `/ (root)`. (The repository owner should confirm this setting; the current Pages configuration is not recorded in the repository.)
+
+CI only tests and builds; it does not deploy.
 
 ## Controls
 
