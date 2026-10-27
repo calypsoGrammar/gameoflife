@@ -44,42 +44,46 @@ export class Surround
   }
 }
 
+// Cells are keyed by one integer so lookups are constant time and nothing is
+// allocated per neighbour. Valid while |x| and |y| stay below KEY_OFFSET
+// (about 33 million), far beyond the import limit plus any practical run.
+const KEY_STRIDE = 2 ** 26;
+const KEY_OFFSET = 2 ** 25;
+const cell_key = (x, y) => (x + KEY_OFFSET) * KEY_STRIDE + (y + KEY_OFFSET);
+const NEIGHBOURS = [
+  [-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1],
+];
+
 // Conway rules, step 1: set `count` (live neighbours) on every live square and
 // return the dead squares ("purgatory") that touch at least one live square,
-// with `count` set to their live-neighbour count.
+// with `count` set to their live-neighbour count. One pass over the live cells
+// and their neighbours, so the work is proportional to the live-cell frontier.
 export function count_neighbours(alive)
 {
-  const key = (x, y) => `${x},${y}`;
-  const live = new Set(alive.map(sq => key(sq.x, sq.y)));
-  const dead = new Map();
-  const purgatory = [];
+  const tally = new Map();
   for(let i = 0; i < alive.length; i++)
   {
-    let count = 0;
-    const surround = new Surround(alive[i].x, alive[i].y);
-    for(const v of surround.vectors)
+    const x = alive[i].x;
+    const y = alive[i].y;
+    for(let n = 0; n < 8; n++)
     {
-      const k = key(v.x, v.y);
-      if(live.has(k))
-      {
-        count++;
-      }
-      else
-      {
-        const square = dead.get(k);
-        if(square !== undefined)
-        {
-          square.count++;
-        }
-        else
-        {
-          const created = new Square(v.x, v.y, 1);
-          dead.set(k, created);
-          purgatory.push(created);
-        }
-      }
+      const k = cell_key(x + NEIGHBOURS[n][0], y + NEIGHBOURS[n][1]);
+      tally.set(k, (tally.get(k) || 0) + 1);
     }
-    alive[i].count = count;
+  }
+  const live = new Set();
+  for(let i = 0; i < alive.length; i++)
+  {
+    const k = cell_key(alive[i].x, alive[i].y);
+    live.add(k);
+    alive[i].count = tally.get(k) || 0;
+  }
+  const purgatory = [];
+  for(const [k, count] of tally)
+  {
+    if(live.has(k)) continue;
+    const kx = Math.floor(k / KEY_STRIDE);
+    purgatory.push(new Square(kx - KEY_OFFSET, k - kx * KEY_STRIDE - KEY_OFFSET, count));
   }
   return purgatory;
 }
