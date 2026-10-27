@@ -269,57 +269,9 @@ MOVE_DOWN.onclick = function(){ window.gol.move_offset('s') };
 ZOOM_OUT.onclick = function(){ window.gol.zoom_out() };
 ZOOM_IN.onclick = function(){ window.gol.zoom_in() };
 
-class Square
-{
-  constructor(
-    x,
-    y,
-    count,
-  )
-  {
-    this.x = x;
-    this.y = y;
-    this.count = count;
-  }
-}
+import { Square, Vector, Viewport, count_neighbours, apply_rules, serialize_state, parse_state } from './life.js';
 
-class Vector
-{
-  constructor(x, y)
-  {
-    this.x = x;
-    this.y = y;
-  }
-}
-
-class Surround{
-  constructor(x, y)
-  {
-    this.up = new Vector(x, y + 1);
-    this.down = new Vector(x, y - 1);
-    this.left = new Vector(x - 1, y);
-    this.right = new Vector(x + 1, y);
-
-    this.up_right = new Vector(x + 1, y + 1);
-    this.up_left = new Vector(x - 1, y + 1);
-    this.down_right = new Vector(x + 1, y - 1)
-    this.down_left = new Vector(x - 1, y - 1);
-
-    this.vectors = [
-      this.up,
-      this.down,
-      this.left,
-      this.right,
-
-      this.up_right,
-      this.up_left,
-      this.down_right,
-      this.down_left,
-    ];
-  }
-}
-
-class GameOfLife
+class GameOfLife extends Viewport
 {
   constructor(
     square_width,
@@ -327,6 +279,7 @@ class GameOfLife
     height,
     )
   {
+    super(square_width, width, height);
     this.debug = false;
     this.grid = true;
     this.dark = false;
@@ -342,14 +295,7 @@ class GameOfLife
     COUNT.innerHTML = this.generations;
     this.dead_game = false;
 
-    this.square_width = square_width;
-    this.width = width;
-    this.height = height;
-    this.calculate_dimensions(0);
-    this.offset_x = 0;
-    this.offset_y = 0;
     this.loc();
-    this.saved_click = new Vector(null, null);
     this.alive = [];
     this.purgatory = [];
     this.draw();
@@ -478,188 +424,58 @@ class GameOfLife
     }
   }
 
-  calculate_dimensions(zoom_in)
-  {
-    let old_columns = this.columns;
-    let old_rows = this.rows;
-
-    this.columns = Math.floor(this.width/this.square_width);
-    this.rows = Math.floor(this.height/this.square_width);
-
-    if(this.columns <= 1 || this.rows <= 1) return false;
-
-    this.offset_x_render = ( this.width - (this.square_width * this.columns) ) / 2;
-    this.offset_y_render = ( this.height - (this.square_width * this.rows) ) / 2;
-
-    this.square_count = this.rows * this.columns;
-
-    if(zoom_in === 1)
-    {
-      this.offset_x = Math.floor(this.offset_x - (old_columns - this.columns)/2);
-      this.offset_y = Math.floor(this.offset_y - (old_rows - this.rows)/2);
-    }
-    else if(zoom_in === 2)
-    {
-      this.offset_x = Math.floor(this.offset_x - (old_columns - this.columns)/2);
-      this.offset_y = Math.floor(this.offset_y - (old_rows - this.rows)/2);
-    }
-
-    if(this.square_count > 0) return true;
-    else return false;
-  }
-
   query_click(x, y)
   {
     if(!this.edit) return;
-    if(x > this.offset_x_render && x < this.width - this.offset_x_render && y > this.offset_y_render && y < this.width - this.offset_y_render)
+    const cell = this.cell_at(x, y);
+    if(cell !== null)
     {
-      let new_x = x - this.offset_x_render;
-      let new_y = y - this.offset_y_render;
-
-      let mod_x = new_x % this.square_width;
-      let mod_y = new_y % this.square_width;
-
-      let loc_x = Math.floor( (new_x - mod_x) / this.square_width);
-      let loc_y = Math.floor( (new_y - mod_y) / this.square_width);
-
-      let offset_loc_x = loc_x - this.offset_x;
-      let offset_loc_y = loc_y - this.offset_y;
-
       let index = this.alive.findIndex(function(item)
       {
-        return item.x === offset_loc_x && item.y === offset_loc_y;
+        return item.x === cell.x && item.y === cell.y;
       });
-
       if(index !== -1)
       {
         this.alive.splice(index, 1);
       }
       else
       {
-        let new_square = new Square(offset_loc_x, offset_loc_y, 0);
-        this.alive.push(new_square);
+        this.alive.push(new Square(cell.x, cell.y, 0));
       }
     }
     this.draw();
   }
 
-  save_click(x, y)
-  {
-    if(x > this.offset_x_render && x < this.width - this.offset_x_render && y > this.offset_y_render && y < this.width - this.offset_y_render)
-    {
-      let mod_x = x % this.square_width;
-      let mod_y = y % this.square_width;
-
-      let loc_x = Math.floor( (x - mod_x) / this.square_width);
-      let loc_y = Math.floor( (y - mod_y) / this.square_width);
-
-      let offset_loc_x = loc_x - this.offset_x;
-      let offset_loc_y = loc_y - this.offset_y;
-
-      this.saved_click.x = offset_loc_x;
-      this.saved_click.y = offset_loc_y;
-    }
-  }
-
   update_saved_click(x, y)
   {
-    if(x > this.offset_x_render && x < this.width - this.offset_x_render && y > this.offset_y_render && y < this.width - this.offset_y_render)
-    {
-      let mod_x = x % this.square_width;
-      let mod_y = y % this.square_width;
-
-      let loc_x = Math.floor( (x - mod_x) / this.square_width);
-      let loc_y = Math.floor( (y - mod_y) / this.square_width);
-
-      let offset_loc_x = loc_x - this.offset_x;
-      let offset_loc_y = loc_y - this.offset_y;
-
-      let offset_dif_x = this.saved_click.x - offset_loc_x;
-      let offset_dif_y = this.saved_click.y - offset_loc_y;
-
-      this.offset_x -= offset_dif_x;
-      this.offset_y -= offset_dif_y;
-
-      this.calculate_dimensions(0);
-      this.draw();
-
-      this.saved_click.x = offset_loc_x;
-      this.saved_click.y = offset_loc_y;
-    }
+    if(super.update_saved_click(x, y)) this.draw();
   }
 
   resolve_saved_click(x, y)
   {
-    if(x > this.offset_x_render && x < this.width - this.offset_x_render && y > this.offset_y_render && y < this.width - this.offset_y_render)
+    if(super.resolve_saved_click(x, y))
     {
-      let mod_x = x % this.square_width;
-      let mod_y = y % this.square_width;
-
-      let loc_x = Math.floor( (x - mod_x) / this.square_width);
-      let loc_y = Math.floor( (y - mod_y) / this.square_width);
-
-      let offset_loc_x = loc_x - this.offset_x;
-      let offset_loc_y = loc_y - this.offset_y;
-
-      let offset_dif_x = this.saved_click.x - offset_loc_x;
-      let offset_dif_y = this.saved_click.y - offset_loc_y;
-
-      this.offset_x -= offset_dif_x;
-      this.offset_y -= offset_dif_y;
-
-      this.calculate_dimensions(0);
       this.draw();
       this.loc();
-
-      this.saved_click.x = null;
-      this.saved_click.y = null;
     }
   }
 
   zoom_out()
   {
-    this.square_width /= 2;
-    let check = this.calculate_dimensions(2);
-    if(check === false)
-    {
-      this.square_width *= 2;
-      this.calculate_dimensions(1);
-    }
+    super.zoom_out();
     this.draw();
   }
 
   zoom_in()
   {
-    this.square_width *= 2;
-    let check = this.calculate_dimensions(1);
-    if(check === false)
-    {
-      this.square_width /= 2;
-      this.calculate_dimensions(2);
-    }
+    super.zoom_in();
     this.draw();
   }
 
   move_offset(direction)
   {
-    if(direction === 'w')
-    {
-      this.offset_y += Math.max(1, Math.floor(this.rows/10));
-    }
-    if(direction === 'a')
-    {
-      this.offset_x += Math.max(1, Math.floor(this.columns/10));
-    }
-    if(direction === 's')
-    {
-      this.offset_y -= Math.max(1, Math.floor(this.columns/10));
-    }
-    if(direction === 'd')
-    {
-      this.offset_x -= Math.max(1, Math.floor(this.rows/10));
-    }
+    super.move_offset(direction);
     this.loc();
-    this.calculate_dimensions(0);
     this.draw();
   }
 
@@ -681,67 +497,15 @@ class GameOfLife
   count()
   {
     if(this.edit) this.edit = false;
-    this.purgatory = [];
-
-    for(let i = 0; i < this.alive.length; i++)
-    {
-      let count = 0;
-      let surround = new Surround(this.alive[i].x, this.alive[i].y);
-
-      for(let g = 0; g < surround.vectors.length; g++)  
-      {
-        let check = false;
-        for(let y = 0; y < this.alive.length; y++)
-        {
-          if(this.alive[y].x === surround.vectors[g].x && this.alive[y].y === surround.vectors[g].y)
-          {
-            count++;
-            check = true;
-            break;
-          }
-        }
-        if(check === false)
-        {
-          let create = true;
-          for(let p = 0; p < this.purgatory.length; p++)
-          {
-            if(this.purgatory[p].x === surround.vectors[g].x && this.purgatory[p].y === surround.vectors[g].y)
-            {
-              this.purgatory[p].count++;
-              create = false;
-            }
-          }
-          if(create === true)
-          {
-            this.purgatory.push(
-              new Square(surround.vectors[g].x, surround.vectors[g].y, 1)
-            );
-          }
-        }
-      }
-
-      this.alive[i].count = count;
-    }
+    this.purgatory = count_neighbours(this.alive);
   }
 
   dead_or_alive()
   {
-    let change = false;
-    let count = this.alive.length;
-    this.alive = this.alive.filter(square => square.count === 2 || square.count === 3);
-    if(count !== this.alive.length) change = true;
-    
-    for(let i = 0; i < this.purgatory.length; i++)
-    {
-      if(this.purgatory[i].count === 3)
-      {
-        let new_square = new Square(this.purgatory[i].x, this.purgatory[i].y, 0);
-        this.alive.push(new_square);
-        change = true;
-      }
-    }
+    const result = apply_rules(this.alive, this.purgatory);
+    this.alive = result.alive;
     this.purgatory.length = 0;
-    return change;
+    return result.change;
   }
 
   draw()
@@ -868,12 +632,7 @@ class GameOfLife
       edit:this.edit,
     };
 
-    const data = {
-      alive: this.alive,
-      settings: settings
-    };
-
-    const json_data = JSON.stringify(data, null, 2);
+    const json_data = serialize_state(this.alive, settings);
     const blob = new Blob([json_data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const filename = `${file_name}.json`;
@@ -901,17 +660,17 @@ class GameOfLife
       const json_data = event.target.result;
       try
       {
-        const imported = JSON.parse(json_data);
-        if(imported.hasOwnProperty('alive'))
+        const imported = parse_state(json_data);
+        if(imported.alive !== null)
         {
-          this.alive = imported.alive.map(obj => new Square(obj.x, obj.y, obj.count));
+          this.alive = imported.alive;
         }
         else
         {
           console.warn('no data found.');
         }
 
-        if(imported.hasOwnProperty('settings'))
+        if(imported.settings !== null)
         {
           const settings = imported.settings;
 
