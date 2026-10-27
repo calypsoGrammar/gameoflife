@@ -939,10 +939,23 @@ new MutationObserver(function()
   DOWN.setAttribute('aria-expanded', String(open));
 }).observe(MENU, { attributes: true, attributeFilter: ['style'] });
 
-// The activated disclosure button hides itself (Alpine x-show), so hand focus
-// to its counterpart once Alpine has updated the DOM.
-UP.addEventListener('click', function(){ setTimeout(function(){ DOWN.focus(); }, 0); });
-DOWN.addEventListener('click', function(){ setTimeout(function(){ UP.focus(); }, 0); });
+// The activated disclosure button hides itself (Alpine x-show, applied on a
+// later animation frame). Remember where focus should go and move it as soon
+// as that button is actually displayed.
+let pending_focus = null;
+function focus_when_visible()
+{
+  if(pending_focus && getComputedStyle(pending_focus).display !== 'none')
+  {
+    pending_focus.focus();
+    pending_focus = null;
+  }
+}
+const disclosure_observer = new MutationObserver(focus_when_visible);
+disclosure_observer.observe(UP, { attributes: true, attributeFilter: ['style'] });
+disclosure_observer.observe(DOWN, { attributes: true, attributeFilter: ['style'] });
+UP.addEventListener('click', function(){ pending_focus = DOWN; });
+DOWN.addEventListener('click', function(){ pending_focus = UP; });
 
 window.addEventListener("resize", resize);
 document.addEventListener("DOMContentLoaded", start);
