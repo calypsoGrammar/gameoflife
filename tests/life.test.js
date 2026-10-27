@@ -131,6 +131,7 @@ describe('viewport', () =>
     v.offset_x = 3;
     v.offset_y = -2;
     expect(v.pan_cell_at(60, 60)).toMatchObject({ x: 1 - 3, y: 1 + 2 });
+    expect(v.pan_cell_at(60, 60)).toEqual(v.cell_at(60, 60));
   });
 
   it('pans with wasd by a tenth of the grid, at least one cell', () =>
@@ -228,5 +229,26 @@ describe('Non-square viewports', () =>
     expect(v.saved_click.y).toBe(16);
     expect(v.resolve_saved_click(200, 900)).toBe(true);
     expect(v.offset_y).toBe(2);
+  });
+});
+
+describe('Click and pan share one conversion', () =>
+{
+  it('a drag inside one visible cell does not pan (1920x1080)', () =>
+  {
+    const v = new Viewport(50, 1920, 1080);
+    expect(v.offset_x_render).toBe(10);
+    v.save_click(45, 45);
+    expect(v.resolve_saved_click(55, 55)).toBe(true);
+    expect(v.offset_x).toBe(0);
+    expect(v.offset_y).toBe(0);
+  });
+
+  it('cell_at and pan_cell_at agree on every sampled point', () =>
+  {
+    const v = new Viewport(50, 1920, 1080);
+    for(let x = 5; x < 1920; x += 37)
+      for(let y = 5; y < 1080; y += 41)
+        expect(v.pan_cell_at(x, y)).toEqual(v.cell_at(x, y));
   });
 });
