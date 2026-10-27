@@ -258,8 +258,8 @@ PAUSE.onclick = function(){ window.gol.stop() };
 STEP.onclick = function(){ window.gol.step() };
 RESET.onclick = function(){ window.gol.reset() };
 
-GRID.onclick = function(){ window.gol.toggle_grid(); GRID.setAttribute('aria-pressed', String(window.gol.grid)); };
-THEME.onclick = function(){ window.gol.toggle_dark(); THEME.setAttribute('aria-pressed', String(window.gol.dark)); };
+GRID.onclick = function(){ window.gol.toggle_grid() };
+THEME.onclick = function(){ window.gol.toggle_dark() };
 HIDE_CONTROLS.onclick = function(){ hide_controls() };
 COL.onchange = function() { window.gol.change_col() };
 DOWNLOAD.onclick = function(){ window.gol.download() };
@@ -418,6 +418,7 @@ class GameOfLife extends Viewport
   {
     this.grid = !this.grid;
     this.draw();
+    this.update_toggle_states();
   }
 
   toggle_dark()
@@ -427,8 +428,17 @@ class GameOfLife extends Viewport
     this.update_menus();
   }
 
+  // Single place that mirrors grid/theme/controls state into aria-pressed.
+  update_toggle_states()
+  {
+    GRID.setAttribute('aria-pressed', String(this.grid));
+    THEME.setAttribute('aria-pressed', String(this.dark));
+    HIDE_CONTROLS.setAttribute('aria-pressed', String(CONTROLS.style.display === ''));
+  }
+
   update_menus()
   {
+    this.update_toggle_states();
     if(this.dark)
     {
       NAV.classList.remove('bg-mod_light');
@@ -797,7 +807,7 @@ function hide_controls()
 {
   if(CONTROLS.style.display === '') CONTROLS.style.display = 'none';
   else CONTROLS.style.display = '';
-  HIDE_CONTROLS.setAttribute('aria-pressed', String(CONTROLS.style.display === ''));
+  window.gol.update_toggle_states();
 }
 
 function resize()
@@ -928,6 +938,11 @@ new MutationObserver(function()
   UP.setAttribute('aria-expanded', String(open));
   DOWN.setAttribute('aria-expanded', String(open));
 }).observe(MENU, { attributes: true, attributeFilter: ['style'] });
+
+// The activated disclosure button hides itself (Alpine x-show), so hand focus
+// to its counterpart once Alpine has updated the DOM.
+UP.addEventListener('click', function(){ setTimeout(function(){ DOWN.focus(); }, 0); });
+DOWN.addEventListener('click', function(){ setTimeout(function(){ UP.focus(); }, 0); });
 
 window.addEventListener("resize", resize);
 document.addEventListener("DOMContentLoaded", start);
