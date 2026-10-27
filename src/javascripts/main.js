@@ -269,7 +269,7 @@ MOVE_DOWN.onclick = function(){ window.gol.move_offset('s') };
 ZOOM_OUT.onclick = function(){ window.gol.zoom_out() };
 ZOOM_IN.onclick = function(){ window.gol.zoom_in() };
 
-import { Square, Vector, Viewport, count_neighbours, apply_rules, serialize_state, parse_state } from './life.js';
+import { Square, Vector, Viewport, count_neighbours, apply_rules, serialize_state, parse_state, ImportError, LIMITS } from './life.js';
 
 class GameOfLife extends Viewport
 {
@@ -648,60 +648,56 @@ class GameOfLife extends Viewport
   import()
   {
     const file = IMPORT.files[0];
-    if(file === null)
+    if(!file)
     {
       window.alert('no file selected');
       return;
     }
 
     const reader = new FileReader();
+    reader.onerror = () => window.alert('Import failed: the file could not be read.');
     reader.onload = (event) =>
     {
-      const json_data = event.target.result;
+      let imported;
       try
       {
-        const imported = parse_state(json_data);
-        if(imported.alive !== null)
-        {
-          this.alive = imported.alive;
-        }
-        else
-        {
-          console.warn('no data found.');
-        }
-
-        if(imported.settings !== null)
-        {
-          const settings = imported.settings;
-
-          this.generations = settings.generations,
-          this.col = settings.col,
-          COL.value = settings.col,
-          this.square_width = settings.square_width,
-          this.offset_x = settings.offset_x,
-          this.offset_y = settings.offset_y,
-          FREQUENCY.value = settings.frequency,
-          this.grid = settings.grid,
-          this.dark = settings.dark,
-          this.edit = settings.edit,
-          NAME.value = settings.name,
-          this.calculate_dimensions(0);
-          this.loc();
-          this.update_menus();
-          this.draw();
-        }
-        else
-        {
-          console.warn('no settings found');
-        }
+        imported = parse_state(event.target.result);
       }
       catch(error)
       {
-        console.error('error importing data');
+        const message = error instanceof ImportError ? error.message : 'unexpected error';
+        window.alert(`Import failed: ${message} The current board was not changed.`);
+        return;
       }
+
+      // Everything validated: apply atomically.
+      if(imported.alive !== null) this.alive = imported.alive;
+      if(imported.settings !== null)
+      {
+        const settings = imported.settings;
+        this.generations = settings.generations;
+        this.col = settings.col;
+        COL.value = settings.col;
+        this.square_width = settings.square_width;
+        this.offset_x = settings.offset_x;
+        this.offset_y = settings.offset_y;
+        FREQUENCY.value = settings.frequency;
+        this.grid = settings.grid;
+        this.dark = settings.dark;
+        this.edit = settings.edit;
+        NAME.value = settings.name;
+        this.fit_square_width();
+        this.loc();
+        this.update_menus();
+      }
+      this.draw();
     };
+    if(file.size > LIMITS.max_file_bytes)
+    {
+      window.alert('Import failed: the file is too large. The current board was not changed.');
+      return;
+    }
     reader.readAsText(file);
-    this.draw();
   }
 }
 

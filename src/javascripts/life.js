@@ -49,37 +49,33 @@ export class Surround
 // with `count` set to their live-neighbour count.
 export function count_neighbours(alive)
 {
+  const key = (x, y) => `${x},${y}`;
+  const live = new Set(alive.map(sq => key(sq.x, sq.y)));
+  const dead = new Map();
   const purgatory = [];
   for(let i = 0; i < alive.length; i++)
   {
     let count = 0;
     const surround = new Surround(alive[i].x, alive[i].y);
-    for(let g = 0; g < surround.vectors.length; g++)
+    for(const v of surround.vectors)
     {
-      let check = false;
-      for(let y = 0; y < alive.length; y++)
+      const k = key(v.x, v.y);
+      if(live.has(k))
       {
-        if(alive[y].x === surround.vectors[g].x && alive[y].y === surround.vectors[g].y)
-        {
-          count++;
-          check = true;
-          break;
-        }
+        count++;
       }
-      if(check === false)
+      else
       {
-        let create = true;
-        for(let p = 0; p < purgatory.length; p++)
+        const square = dead.get(k);
+        if(square !== undefined)
         {
-          if(purgatory[p].x === surround.vectors[g].x && purgatory[p].y === surround.vectors[g].y)
-          {
-            purgatory[p].count++;
-            create = false;
-          }
+          square.count++;
         }
-        if(create === true)
+        else
         {
-          purgatory.push(new Square(surround.vectors[g].x, surround.vectors[g].y, 1));
+          const created = new Square(v.x, v.y, 1);
+          dead.set(k, created);
+          purgatory.push(created);
         }
       }
     }
@@ -112,27 +108,139 @@ export function next_generation(alive)
   return apply_rules(alive, purgatory);
 }
 
-// Import/export. `data` is { alive: [{x, y, count}], settings: {...} }.
+// Import/export. `data` is { version, alive: [{x, y, count}], settings: {...} }.
+export const STATE_VERSION = 1;
+export const LIMITS = {
+  max_file_bytes: 5 * 1024 * 1024,
+  max_cells: 10000,
+  max_coordinate: 1000000,
+  max_offset: 1000000,
+  min_square_width: 1,
+  max_square_width: 1000,
+  min_frequency: 0.01,
+  max_frequency: 10,
+  max_generations: 1000000000,
+  max_name_length: 255,
+};
+
+export class ImportError extends Error
+{
+  constructor(message)
+  {
+    super(message);
+    this.name = 'ImportError';
+  }
+}
+
 export function serialize_state(alive, settings)
 {
-  return JSON.stringify({ alive, settings }, null, 2);
+  return JSON.stringify({ version: STATE_VERSION, alive, settings }, null, 2);
+}
+
+const is_plain_object = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
+
+function integer_in(value, min, max, label)
+{
+  if(typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max)
+  {
+    throw new ImportError(`${label} must be a whole number between ${min} and ${max}.`);
+  }
+  return value;
+}
+
+function boolean_of(value, label)
+{
+  if(typeof value !== 'boolean') throw new ImportError(`${label} must be true or false.`);
+  return value;
+}
+
+function validate_alive(list)
+{
+  if(!Array.isArray(list)) throw new ImportError('"alive" must be a list of cells.');
+  if(list.length > LIMITS.max_cells)
+  {
+    throw new ImportError(`Too many cells (${list.length}); the limit is ${LIMITS.max_cells}.`);
+  }
+  const seen = new Set();
+  const result = [];
+  for(let i = 0; i < list.length; i++)
+  {
+    const cell = list[i];
+    if(!is_plain_object(cell)) throw new ImportError(`Cell ${i} is not an object.`);
+    const m = LIMITS.max_coordinate;
+    const x = integer_in(cell.x, -m, m, `Cell ${i} x`);
+    const y = integer_in(cell.y, -m, m, `Cell ${i} y`);
+    const count = cell.count === undefined ? 0 : integer_in(cell.count, 0, 8, `Cell ${i} count`);
+    const key = `${x},${y}`;
+    if(seen.has(key)) throw new ImportError(`Duplicate cell at (${x}, ${y}).`);
+    seen.add(key);
+    result.push(new Square(x, y, count));
+  }
+  return result;
+}
+
+function validate_settings(s)
+{
+  if(!is_plain_object(s)) throw new ImportError('"settings" must be an object.');
+  const L = LIMITS;
+  if(typeof s.col !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(s.col))
+  {
+    throw new ImportError('Colour must be a hex value like #af1919.');
+  }
+  const frequency = typeof s.frequency === 'string' && s.frequency.trim() !== '' ? Number(s.frequency) : s.frequency;
+  if(typeof frequency !== 'number' || !Number.isFinite(frequency))
+  {
+    throw new ImportError('Frequency must be a number.');
+  }
+  if(typeof s.name !== 'string' || s.name.length > L.max_name_length)
+  {
+    throw new ImportError(`Name must be text of at most ${L.max_name_length} characters.`);
+  }
+  if(typeof s.square_width !== 'number' || !Number.isFinite(s.square_width))
+  {
+    throw new ImportError('Square width must be a number.');
+  }
+  return {
+    generations: integer_in(s.generations, 0, L.max_generations, 'Generations'),
+    col: s.col,
+    offset_x: integer_in(s.offset_x, -L.max_offset, L.max_offset, 'Offset x'),
+    offset_y: integer_in(s.offset_y, -L.max_offset, L.max_offset, 'Offset y'),
+    square_width: Math.min(L.max_square_width, Math.max(L.min_square_width, s.square_width)),
+    frequency: String(Math.min(L.max_frequency, Math.max(L.min_frequency, frequency))),
+    grid: boolean_of(s.grid, 'Grid'),
+    dark: boolean_of(s.dark, 'Dark'),
+    name: s.name,
+    edit: boolean_of(s.edit, 'Edit'),
+  };
 }
 
 // Returns { alive: Square[] | null, settings: object | null }.
-// Throws on invalid JSON. Missing sections come back as null.
+// Throws ImportError (with a user-facing message) on invalid JSON or an invalid
+// or oversized state; nothing is returned unless the whole file validates.
+// Missing sections come back as null. Files without a version are treated as v1.
 export function parse_state(text)
 {
-  const imported = JSON.parse(text);
-  const result = { alive: null, settings: null };
-  if(Object.prototype.hasOwnProperty.call(imported, 'alive'))
+  if(typeof text !== 'string') throw new ImportError('The file could not be read as text.');
+  if(text.length > LIMITS.max_file_bytes) throw new ImportError('The file is too large to import.');
+  let imported;
+  try
   {
-    result.alive = imported.alive.map(obj => new Square(obj.x, obj.y, obj.count));
+    imported = JSON.parse(text);
   }
-  if(Object.prototype.hasOwnProperty.call(imported, 'settings'))
+  catch(error)
   {
-    result.settings = imported.settings;
+    throw new ImportError('The file is not valid JSON.');
   }
-  return result;
+  if(!is_plain_object(imported)) throw new ImportError('The file must contain a JSON object.');
+  if(imported.version !== undefined && imported.version !== STATE_VERSION)
+  {
+    throw new ImportError(`Unsupported file version: ${String(imported.version).slice(0, 20)}.`);
+  }
+  const has = (k) => Object.prototype.hasOwnProperty.call(imported, k);
+  return {
+    alive: has('alive') ? validate_alive(imported.alive) : null,
+    settings: has('settings') ? validate_settings(imported.settings) : null,
+  };
 }
 
 // Pan/zoom state and coordinate mapping, independent of the DOM.
@@ -167,6 +275,17 @@ export class Viewport
       this.offset_y = Math.floor(this.offset_y - (old_rows - this.rows)/2);
     }
     return this.square_count > 0;
+  }
+
+  // Halve square_width until the grid has more than one row and column, so an
+  // imported zoom that is too large for this viewport stays usable.
+  fit_square_width()
+  {
+    while(this.square_width > LIMITS.min_square_width && !this.calculate_dimensions(0))
+    {
+      this.square_width /= 2;
+    }
+    return this.calculate_dimensions(0);
   }
 
   in_bounds(x, y)

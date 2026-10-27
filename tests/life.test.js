@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   Square, Viewport, next_generation, count_neighbours, apply_rules,
-  serialize_state, parse_state,
+  serialize_state, parse_state, ImportError, LIMITS,
 } from '../src/javascripts/life.js';
 
 const cells = (pairs) => pairs.map(([x, y]) => new Square(x, y, 0));
@@ -99,12 +99,100 @@ describe('import/export', () =>
 
   it('throws on invalid JSON', () =>
   {
-    expect(() => parse_state('not json')).toThrow();
+    expect(() => parse_state('not json')).toThrow(ImportError);
+  });
+
+  const withSettings = (over) => JSON.stringify({ alive: [], settings: { ...settings, ...over } });
+  const withCells = (alive) => JSON.stringify({ alive });
+
+  it('writes a version and accepts unversioned files', () =>
+  {
+    expect(JSON.parse(serialize_state([], settings)).version).toBe(1);
+    expect(parse_state('{"version":1,"alive":[]}').alive).toEqual([]);
+    expect(() => parse_state('{"version":2,"alive":[]}')).toThrow(/version/);
+  });
+
+  it('rejects non-object top levels', () =>
+  {
+    for(const text of ['null', '[]', '5', '"x"']) expect(() => parse_state(text)).toThrow(ImportError);
+  });
+
+  it('rejects malformed settings', () =>
+  {
+    for(const over of [
+      { col: 'red' }, { col: 5 }, { grid: 'yes' }, { dark: 1 }, { edit: null },
+      { generations: -1 }, { generations: 1.5 }, { generations: '3' },
+      { offset_x: 1e12 }, { offset_y: NaN }, { square_width: 'big' }, { frequency: 'abc' },
+      { name: 'x'.repeat(LIMITS.max_name_length + 1) }, { name: 3 },
+    ])
+    {
+      expect(() => parse_state(withSettings(over)), JSON.stringify(over)).toThrow(ImportError);
+    }
+    expect(() => parse_state('{"settings":null}')).toThrow(ImportError);
+    expect(() => parse_state('{"settings":{}}')).toThrow(ImportError);
+  });
+
+  it('clamps square width and frequency', () =>
+  {
+    const s = parse_state(withSettings({ square_width: 1e9, frequency: '9999' })).settings;
+    expect(s.square_width).toBe(LIMITS.max_square_width);
+    expect(s.frequency).toBe('10');
+    const t = parse_state(withSettings({ square_width: -5, frequency: 0 })).settings;
+    expect(t.square_width).toBe(LIMITS.min_square_width);
+    expect(t.frequency).toBe('0.01');
+  });
+
+  it('rejects duplicate and invalid cells', () =>
+  {
+    expect(() => parse_state(withCells([{ x: 1, y: 2 }, { x: 1, y: 2 }]))).toThrow(/Duplicate/);
+    for(const cell of [null, 5, { x: 1 }, { x: '1', y: 2 }, { x: 1.5, y: 2 }, { x: 1, y: 2, count: 99 }])
+    {
+      expect(() => parse_state(withCells([cell]))).toThrow(ImportError);
+    }
+    expect(() => parse_state('{"alive":{}}')).toThrow(ImportError);
+  });
+
+  it('rejects extreme coordinates', () =>
+  {
+    const m = LIMITS.max_coordinate;
+    expect(() => parse_state(withCells([{ x: m + 1, y: 0 }]))).toThrow(ImportError);
+    expect(() => parse_state(withCells([{ x: 0, y: -m - 1 }]))).toThrow(ImportError);
+    expect(parse_state(withCells([{ x: m, y: -m }])).alive).toHaveLength(1);
+  });
+
+  it('rejects oversized cell arrays', () =>
+  {
+    const many = Array.from({ length: LIMITS.max_cells + 1 }, (_, i) => ({ x: i, y: 0, count: 0 }));
+    expect(() => parse_state(withCells(many))).toThrow(/Too many cells/);
+    expect(parse_state(withCells(many.slice(1))).alive).toHaveLength(LIMITS.max_cells);
+  });
+});
+
+describe('performance', () =>
+{
+  it('steps the maximum imported cell count quickly', () =>
+  {
+    const alive = [];
+    for(let i = 0; alive.length < LIMITS.max_cells; i++)
+    {
+      alive.push(new Square(i % 100 * 2, Math.floor(i / 100) * 2 + (i % 3), 0));
+    }
+    const start = performance.now();
+    next_generation(alive);
+    expect(performance.now() - start).toBeLessThan(1000);
   });
 });
 
 describe('viewport', () =>
 {
+  it('fits an oversized imported square width to the viewport', () =>
+  {
+    const v = new Viewport(1000, 500, 500);
+    expect(v.fit_square_width()).toBe(true);
+    expect(v.columns).toBeGreaterThan(1);
+    expect(v.rows).toBeGreaterThan(1);
+  });
+
   // 500x500 with 50px squares: 10x10 cells, no centring margin.
   const make = () => new Viewport(50, 500, 500);
 
