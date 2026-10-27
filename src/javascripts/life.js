@@ -359,6 +359,15 @@ export class Viewport
     return true;
   }
 
+  // Pan the minimum distance needed to bring cell (x, y) into view.
+  scroll_to_cell(x, y)
+  {
+    if(x < -this.offset_x) this.offset_x = -x;
+    else if(x >= -this.offset_x + this.columns) this.offset_x = this.columns - 1 - x;
+    if(y < -this.offset_y) this.offset_y = -y;
+    else if(y >= -this.offset_y + this.rows) this.offset_y = this.rows - 1 - y;
+  }
+
   zoom_out()
   {
     this.square_width /= 2;

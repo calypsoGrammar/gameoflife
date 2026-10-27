@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
     <title>Game of Life</title>
-    <script type="module" crossorigin src="/gameoflife/assets/index-VZuAfU8u.js"></script>
-    <link rel="stylesheet" crossorigin href="/gameoflife/assets/index-C63_Bcdt.css">
+    <script type="module" crossorigin src="/gameoflife/assets/index-Ci48-nNs.js"></script>
+    <link rel="stylesheet" crossorigin href="/gameoflife/assets/index-D3UeXkM_.css">
   </head>
   <body
   class='min-h-screen max-h-screen font-f1 text-md'
@@ -21,7 +21,7 @@
   <div class='bg-mod_dark text-mod_light' hidden></div>
 
     <nav
-    id="NAV"
+    id="NAV" aria-label="Simulation controls"
     class="z-30 absolute bg-mod_light text-mod_dark top-[6px] left-1/2 transform -translate-x-1/2 flex flex-col justify-start items-center shadow-lg w-full max-w-xl rounded-lg">
 
       <div
@@ -29,45 +29,47 @@
       >
 
         <button
-        id="PLAY"
+        id="PLAY" aria-label="Play simulation"
         class="flex justify-center items-center active:scale-95 hover:scale-105"
         ></button>
 
         <button
-        id="PAUSE"
+        id="PAUSE" aria-label="Pause simulation"
         class="flex justify-center items-center active:scale-95 hover:scale-105"
         style="display:none;"
         ></button>
 
         <button
-        id="STEP"
+        id="STEP" aria-label="Advance one generation"
         class="flex justify-center items-center active:scale-95 hover:scale-105"
         ></button>
 
         <button
-        id="RESET"
+        id="RESET" aria-label="Reset board"
         class="flex justify-center items-center active:scale-95 hover:scale-105"
         ></button>
 
         <div
         id="COUNT"
+        role="group" aria-label="Generation"
         class="flex justify-center items-center cursor-auto mx-2"
         ></div>
 
         <div
         id="LOC"
+        role="group" aria-label="View origin"
         class="flex justify-center items-center cursor-auto mx-2"
         ></div>
 
         <button
-        id="DOWN"
+        id="DOWN" aria-label="Show menu" aria-controls="MENU" aria-expanded="false"
         class="flex justify-center items-center active:scale-95 hover:scale-105"
         x-show="!menu"
         x-on:click="menu=!menu"
         ></button>
         
         <button
-        id="UP"
+        id="UP" aria-label="Hide menu" aria-controls="MENU" aria-expanded="true"
         class="flex justify-center items-center active:scale-95 hover:scale-105"
         style="display:none;"
         x-show="menu"
@@ -87,9 +89,9 @@
         </div>
 
         <div class='flex flex-row justify-between items-center w-[250px]'>
-          <label class='m-2' for="FREQUENCY">show grid</label>
+          <label class='m-2' for="GRID">show grid</label>
           <button
-          id="GRID"
+          id="GRID" aria-pressed="true"
           class="flex justify-center items-center m-2 active:scale-95 hover:scale-105"
           ></button>
         </div>
@@ -97,7 +99,7 @@
         <div class='flex flex-row justify-between items-center w-[250px]'>
           <label class='m-2' for="THEME">theme</label>
           <button
-          id="THEME"
+          id="THEME" aria-pressed="false"
           class="flex justify-center items-center m-2 active:scale-95 hover:scale-105"
           ></button>
         </div>
@@ -105,7 +107,7 @@
         <div class='flex flex-row justify-between items-center w-[250px]'>
           <label class='m-2' for="HIDE_CONTROLS">controls</label>
           <button
-          id="HIDE_CONTROLS"
+          id="HIDE_CONTROLS" aria-pressed="true"
           class="flex justify-center items-center m-2 active:scale-95 hover:scale-105"
           ></button>
         </div>
@@ -114,7 +116,7 @@
         <input type="color" class="text-center m-2" id="COL" value="#af1919" style="min-height:50px; min-width: 50px" />
 
         <div class='flex flex-col justify-start items-center my-2'>
-          <label class='m-2' for="DOWNLOAD">download</label>
+          <label class='m-2' for="NAME">download file name</label>
           <input
           id="NAME"
           class='mx-2 bg-mod_light text-mod_dark rounded-lg border border-mod_dark p-2'
@@ -122,15 +124,16 @@
           placeholder="name..."
           />
           <button
-          id="DOWNLOAD"
+          id="DOWNLOAD" aria-label="Download board as JSON"
           class="m-2 p-2 active:scale-95 bg-mod_dark text-mod_light rounded-lg hover:bg-mod_dark_light flex justify-center items-center border border-mod_light"
           ></button>
         </div>
 
         <div class='flex flex-col justify-start items-center my-2'>
-          <label class='m-2' for="LOAD">import</label>
+          <span class='m-2' id="IMPORT_LABEL">import</span>
 
           <div
+          role="group" aria-labelledby="IMPORT_LABEL"
           class='flex flex-row justify-center items-center'>
             <input
             hidden
@@ -140,14 +143,14 @@
             <button
             id="SELECT"
             class="m-2 p-2 active:scale-95 bg-mod_dark text-mod_light rounded-lg hover:bg-mod_dark_light flex justify-center items-center border border-mod_light"
-            >select</button>
+            >select file</button>
             <button
             id="LOAD"
             class="m-2 p-2 active:scale-95 bg-mod_dark text-mod_light rounded-lg hover:bg-mod_dark_light flex justify-center items-center border border-mod_light"
-            >load</button>
+            >load file</button>
           </div>
 
-          <div id="FILE_TO_LOAD" class="max-w-xl px-2 mx-2"></div>
+          <div id="FILE_TO_LOAD" role="status" class="max-w-xl px-2 mx-2"></div>
 
         </div>
 
@@ -155,13 +158,20 @@
 
     </nav>
     
+    <p id="CANVAS_HELP" class="sr-only">Board editor. Arrow keys move the cell cursor, Enter or Space toggles the cell under it. Cells can only be edited before the simulation has run; reset to edit again. Use W A S D to pan, M and N to zoom while the menu is closed.</p>
+    <div id="STATUS" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
     <canvas
     id="CANVAS"
+    tabindex="0"
+    role="application"
+    aria-label="Game of Life board"
+    aria-describedby="CANVAS_HELP"
     oncontextmenu="return false;"
     class="fixed top-0 left-0 min-h-screen max-h-screen text-wrap"></canvas>
 
     <nav
-    id="CONTROLS"
+    id="CONTROLS" aria-label="View controls"
     class="z-30 absolute bg-mod_light text-mod_dark bottom-[6px] left-1/2 transform -translate-x-1/2 flex flex-col justify-start items-center shadow-lg w-full max-w-xl rounded-lg">
 
       <div
@@ -169,38 +179,38 @@
       >
 
         <button
-        id="MOVE_LEFT"
+        id="MOVE_LEFT" aria-label="Move view left"
         class="flex justify-center items-center active:scale-95 hover:scale-105"
         ></button>
 
         <button
-        id="MOVE_UP"
+        id="MOVE_UP" aria-label="Move view up"
         class="flex justify-center items-center active:scale-95 hover:scale-105"
         ></button>
 
         <button
-        id="MOVE_DOWN"
+        id="MOVE_DOWN" aria-label="Move view down"
         class="flex justify-center items-center active:scale-95 hover:scale-105"
         ></button>
 
         <button
-        id="MOVE_RIGHT"
+        id="MOVE_RIGHT" aria-label="Move view right"
         class="flex justify-center items-center active:scale-95 hover:scale-105"
         ></button>
 
         <button
-        id="ZOOM_OUT"
+        id="ZOOM_OUT" aria-label="Zoom out"
         class="flex justify-center items-center active:scale-95 hover:scale-105"
         >-</button>
 
         <button
-        id="ZOOM_IN"
+        id="ZOOM_IN" aria-label="Zoom in"
         class="flex justify-center items-center active:scale-95 hover:scale-105"
         >+</button>
 
       </div>
 
-    </div>
+    </nav>
 
   </body>
 </html>
