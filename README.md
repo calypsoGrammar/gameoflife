@@ -77,3 +77,17 @@ Download saves a JSON file; Select + Load restores it.
 
 - `alive`: live cells at integer grid coordinates (`x` right, `y` down, may be negative). `count` is the neighbour count and is recomputed on each step.
 - `settings`: all fields are applied together when present. Either section may be omitted; a missing section is skipped with a console warning, and invalid JSON logs an error and changes nothing.
+
+## Performance
+
+Each generation is computed in one pass over the live cells: every live cell
+adds one to the tally of its eight neighbours (a `Map` keyed by an integer
+coordinate key), so work is proportional to the live cells plus their
+neighbour frontier, not to repeated array scans. Playback uses chained
+timeouts, so a slow generation delays the next one instead of queueing ticks.
+
+Documented bound: imports are capped at 10,000 cells (`LIMITS.max_cells`), and
+a generation of a 10,000-cell pattern is expected to take well under a second
+(typically a few tens of milliseconds). Coordinates must stay within about
+±33 million. `tests/performance.test.js` holds small/medium/large fixtures and
+an equivalence check against a naive implementation; run with `npm test`.

@@ -308,7 +308,7 @@ class GameOfLife extends Viewport
     this.grid = true;
     this.edit = true;
 
-    clearInterval(this.interval);
+    clearTimeout(this.interval);
     this.interval = null;
     this.generations = 0;
     COUNT.innerHTML = this.generations;
@@ -344,17 +344,32 @@ class GameOfLife extends Viewport
     {
       if(FREQUENCY.value < 0.01)FREQUENCY.value = 0.01;
       if(FREQUENCY.value > 10)FREQUENCY.value = 10;
-      this.interval = setInterval(this.iterate.bind(this), FREQUENCY.value * 1000);
+      this.period = FREQUENCY.value * 1000;
+      this.schedule(this.period);
     }
     PLAY.style.display = 'none';
     PAUSE.style.display = '';
+  }
+
+  // Chained timeouts instead of setInterval: a slow generation delays the next
+  // one rather than queueing ticks behind it, so the UI thread can always
+  // handle input and painting between generations.
+  schedule(delay)
+  {
+    this.interval = setTimeout(() =>
+    {
+      const start = performance.now();
+      this.iterate();
+      if(this.interval === null) return;
+      this.schedule(Math.max(0, this.period - (performance.now() - start)));
+    }, delay);
   }
 
   stop()
   {
     if(this.interval !== null)
     {
-      clearInterval(this.interval);
+      clearTimeout(this.interval);
       this.interval = null;
     }
     PLAY.style.display = '';
