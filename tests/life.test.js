@@ -185,3 +185,48 @@ describe('viewport', () =>
     expect(v.saved_click).toMatchObject({ x: null, y: null });
   });
 });
+
+describe('Non-square viewports', () =>
+{
+  const shapes = {
+    portrait: [500, 1000],
+    landscape: [1000, 500],
+    desktop: [1920, 1080],
+  };
+
+  for(const [name, [w, h]] of Object.entries(shapes))
+  {
+    it(`hit-tests the full height and width (${name})`, () =>
+    {
+      const v = new Viewport(50, w, h);
+      const lastX = w - v.offset_x_render - 1;
+      const lastY = h - v.offset_y_render - 1;
+      expect(v.cell_at(lastX, lastY)).toMatchObject({ x: v.columns - 1, y: v.rows - 1 });
+      expect(v.cell_at(lastX, v.offset_y_render + 1)).not.toBeNull();
+      expect(v.cell_at(w - v.offset_x_render + 1, 10)).toBeNull();
+      expect(v.cell_at(10, h - v.offset_y_render + 1)).toBeNull();
+      expect(v.pan_cell_at(w / 2, h - v.offset_y_render - 1)).not.toBeNull();
+      expect(v.pan_cell_at(w / 2, h - v.offset_y_render + 1)).toBeNull();
+    });
+
+    it(`pans proportionally to each axis (${name})`, () =>
+    {
+      const v = new Viewport(10, w, h);
+      const dx = Math.max(1, Math.floor(v.columns / 10));
+      const dy = Math.max(1, Math.floor(v.rows / 10));
+      v.move_offset('a'); expect(v.offset_x).toBe(dx);
+      v.move_offset('d'); expect(v.offset_x).toBe(0);
+      v.move_offset('w'); expect(v.offset_y).toBe(dy);
+      v.move_offset('s'); expect(v.offset_y).toBe(0);
+    });
+  }
+
+  it('drags consistently on a portrait canvas below the old width bound', () =>
+  {
+    const v = new Viewport(50, 500, 1000);
+    v.save_click(100, 800);
+    expect(v.saved_click.y).toBe(16);
+    expect(v.resolve_saved_click(200, 900)).toBe(true);
+    expect(v.offset_y).toBe(2);
+  });
+});

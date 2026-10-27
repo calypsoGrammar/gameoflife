@@ -172,7 +172,7 @@ export class Viewport
   in_bounds(x, y)
   {
     return x > this.offset_x_render && x < this.width - this.offset_x_render
-      && y > this.offset_y_render && y < this.width - this.offset_y_render;
+      && y > this.offset_y_render && y < this.height - this.offset_y_render;
   }
 
   // Cell under the pixel (x, y) measured from the grid origin (used when editing).
@@ -258,8 +258,8 @@ export class Viewport
   {
     if(direction === 'w') this.offset_y += Math.max(1, Math.floor(this.rows/10));
     if(direction === 'a') this.offset_x += Math.max(1, Math.floor(this.columns/10));
-    if(direction === 's') this.offset_y -= Math.max(1, Math.floor(this.columns/10));
-    if(direction === 'd') this.offset_x -= Math.max(1, Math.floor(this.rows/10));
+    if(direction === 's') this.offset_y -= Math.max(1, Math.floor(this.rows/10));
+    if(direction === 'd') this.offset_x -= Math.max(1, Math.floor(this.columns/10));
     this.calculate_dimensions(0);
   }
 }
