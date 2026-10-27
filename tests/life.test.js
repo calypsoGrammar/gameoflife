@@ -131,6 +131,7 @@ describe('viewport', () =>
     v.offset_x = 3;
     v.offset_y = -2;
     expect(v.pan_cell_at(60, 60)).toMatchObject({ x: 1 - 3, y: 1 + 2 });
+    expect(v.pan_cell_at(60, 60)).toEqual(v.cell_at(60, 60));
   });
 
   it('pans with wasd by a tenth of the grid, at least one cell', () =>
@@ -183,5 +184,71 @@ describe('viewport', () =>
     expect(v.offset_x).toBe(2);
     expect(v.offset_y).toBe(1);
     expect(v.saved_click).toMatchObject({ x: null, y: null });
+  });
+});
+
+describe('Non-square viewports', () =>
+{
+  const shapes = {
+    portrait: [500, 1000],
+    landscape: [1000, 500],
+    desktop: [1920, 1080],
+  };
+
+  for(const [name, [w, h]] of Object.entries(shapes))
+  {
+    it(`hit-tests the full height and width (${name})`, () =>
+    {
+      const v = new Viewport(50, w, h);
+      const lastX = w - v.offset_x_render - 1;
+      const lastY = h - v.offset_y_render - 1;
+      expect(v.cell_at(lastX, lastY)).toMatchObject({ x: v.columns - 1, y: v.rows - 1 });
+      expect(v.cell_at(lastX, v.offset_y_render + 1)).not.toBeNull();
+      expect(v.cell_at(w - v.offset_x_render + 1, 10)).toBeNull();
+      expect(v.cell_at(10, h - v.offset_y_render + 1)).toBeNull();
+      expect(v.pan_cell_at(w / 2, h - v.offset_y_render - 1)).not.toBeNull();
+      expect(v.pan_cell_at(w / 2, h - v.offset_y_render + 1)).toBeNull();
+    });
+
+    it(`pans proportionally to each axis (${name})`, () =>
+    {
+      const v = new Viewport(10, w, h);
+      const dx = Math.max(1, Math.floor(v.columns / 10));
+      const dy = Math.max(1, Math.floor(v.rows / 10));
+      v.move_offset('a'); expect(v.offset_x).toBe(dx);
+      v.move_offset('d'); expect(v.offset_x).toBe(0);
+      v.move_offset('w'); expect(v.offset_y).toBe(dy);
+      v.move_offset('s'); expect(v.offset_y).toBe(0);
+    });
+  }
+
+  it('drags consistently on a portrait canvas below the old width bound', () =>
+  {
+    const v = new Viewport(50, 500, 1000);
+    v.save_click(100, 800);
+    expect(v.saved_click.y).toBe(16);
+    expect(v.resolve_saved_click(200, 900)).toBe(true);
+    expect(v.offset_y).toBe(2);
+  });
+});
+
+describe('Click and pan share one conversion', () =>
+{
+  it('a drag inside one visible cell does not pan (1920x1080)', () =>
+  {
+    const v = new Viewport(50, 1920, 1080);
+    expect(v.offset_x_render).toBe(10);
+    v.save_click(45, 45);
+    expect(v.resolve_saved_click(55, 55)).toBe(true);
+    expect(v.offset_x).toBe(0);
+    expect(v.offset_y).toBe(0);
+  });
+
+  it('cell_at and pan_cell_at agree on every sampled point', () =>
+  {
+    const v = new Viewport(50, 1920, 1080);
+    for(let x = 5; x < 1920; x += 37)
+      for(let y = 5; y < 1080; y += 41)
+        expect(v.pan_cell_at(x, y)).toEqual(v.cell_at(x, y));
   });
 });
