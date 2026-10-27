@@ -25,23 +25,28 @@ npm run preview   # serve the production build locally
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs on every pull request and on pushes to `main`: `npm ci`, `npm test`, `npm run build`. A failing test or build fails the check.
+`.github/workflows/ci.yml` runs on every pull request and on pushes to `main`: `npm ci`, `npm test`, `npm run build`. It also supports manual runs from the Actions tab. A failing test or build fails the check and prevents deployment. Pull requests only test and build; successful runs on `main` also deploy.
 
 ## Deployment (GitHub Pages)
 
-The site is served at `https://<owner>.github.io/gameoflife/`, so `base` in `vite.config.js` must equal `/<repository name>/`.
+The expected site URL is https://calypsoGrammar.github.io/gameoflife/. Keep `base: '/gameoflife/'` in `vite.config.js` so asset URLs work under the repository path.
 
-GitHub Pages can only serve a branch root, a branch's `/docs` folder, or a GitHub Actions artifact; it cannot serve `dist/` on `main` directly. There is no automated deploy workflow, so deploy manually to a `gh-pages` branch:
+### One-time setup
 
-```sh
-npm ci && npm test && npm run build
-git add -f dist && git commit -m "Rebuild dist"      # dist is in .gitignore but tracked, so it must be force-added
-git subtree push --prefix dist origin gh-pages
-```
+1. In [Settings → Pages](https://github.com/calypsoGrammar/gameoflife/settings/pages), set **Build and deployment → Source** to **GitHub Actions**. Replace any existing branch-based source; no generated starter workflow is needed.
+2. In **Settings → Actions → General**, ensure Actions are enabled and repository policy allows the `actions/checkout`, `actions/setup-node`, `actions/configure-pages`, `actions/upload-pages-artifact` and `actions/deploy-pages` actions used by the workflow.
+3. Merge the deployment workflow into `main`. That push starts the first deployment. If the workflow was merged before Pages was configured, open **Actions → CI → Run workflow**, select `main` and run it again.
+4. Check that both `test-and-build` and `deploy` succeed. The `deploy` job reports the published URL. The `github-pages` environment is created automatically if absent; if it already has deployment branch rules, allow `main`. Required reviewers on that environment will make each deployment wait for approval.
 
-Then in the repository's Settings → Pages, set the source to "Deploy from a branch", branch `gh-pages`, folder `/ (root)`. (The repository owner should confirm this setting; the current Pages configuration is not recorded in the repository.)
+No personal access token or repository secret is needed. The workflow grants Pages and OIDC write permissions only to the deployment job; the test/build job has read-only repository access. Do not enable broad write permissions globally.
 
-CI only tests and builds; it does not deploy.
+### Future releases and recovery
+
+Every push or merged pull request to `main` installs locked dependencies, runs tests, builds fresh `dist/` output and deploys that artifact. The checked-in `dist/` files are not the deployment source. There is no manual subtree push or `gh-pages` branch maintenance.
+
+To redeploy, use **Actions → CI → Run workflow → main**. Manual runs on other branches can test and build but cannot publish. Deployments are serialized and an active deployment is allowed to finish. To roll back, revert the faulty change through a pull request and merge it into `main`; the same workflow tests and publishes the reverted source.
+
+If deployment fails, check the `deploy` job logs, the Pages source setting and the `github-pages` environment rules. A failed test/build skips deployment and leaves the previously published site in place.
 
 ## Controls
 
