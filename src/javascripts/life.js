@@ -49,37 +49,33 @@ export class Surround
 // with `count` set to their live-neighbour count.
 export function count_neighbours(alive)
 {
+  const key = (x, y) => `${x},${y}`;
+  const live = new Set(alive.map(sq => key(sq.x, sq.y)));
+  const dead = new Map();
   const purgatory = [];
   for(let i = 0; i < alive.length; i++)
   {
     let count = 0;
     const surround = new Surround(alive[i].x, alive[i].y);
-    for(let g = 0; g < surround.vectors.length; g++)
+    for(const v of surround.vectors)
     {
-      let check = false;
-      for(let y = 0; y < alive.length; y++)
+      const k = key(v.x, v.y);
+      if(live.has(k))
       {
-        if(alive[y].x === surround.vectors[g].x && alive[y].y === surround.vectors[g].y)
-        {
-          count++;
-          check = true;
-          break;
-        }
+        count++;
       }
-      if(check === false)
+      else
       {
-        let create = true;
-        for(let p = 0; p < purgatory.length; p++)
+        const square = dead.get(k);
+        if(square !== undefined)
         {
-          if(purgatory[p].x === surround.vectors[g].x && purgatory[p].y === surround.vectors[g].y)
-          {
-            purgatory[p].count++;
-            create = false;
-          }
+          square.count++;
         }
-        if(create === true)
+        else
         {
-          purgatory.push(new Square(surround.vectors[g].x, surround.vectors[g].y, 1));
+          const created = new Square(v.x, v.y, 1);
+          dead.set(k, created);
+          purgatory.push(created);
         }
       }
     }
@@ -279,6 +275,17 @@ export class Viewport
       this.offset_y = Math.floor(this.offset_y - (old_rows - this.rows)/2);
     }
     return this.square_count > 0;
+  }
+
+  // Halve square_width until the grid has more than one row and column, so an
+  // imported zoom that is too large for this viewport stays usable.
+  fit_square_width()
+  {
+    while(this.square_width > LIMITS.min_square_width && !this.calculate_dimensions(0))
+    {
+      this.square_width /= 2;
+    }
+    return this.calculate_dimensions(0);
   }
 
   in_bounds(x, y)

@@ -168,8 +168,31 @@ describe('import/export', () =>
   });
 });
 
+describe('performance', () =>
+{
+  it('steps the maximum imported cell count quickly', () =>
+  {
+    const alive = [];
+    for(let i = 0; alive.length < LIMITS.max_cells; i++)
+    {
+      alive.push(new Square(i % 100 * 2, Math.floor(i / 100) * 2 + (i % 3), 0));
+    }
+    const start = performance.now();
+    next_generation(alive);
+    expect(performance.now() - start).toBeLessThan(1000);
+  });
+});
+
 describe('viewport', () =>
 {
+  it('fits an oversized imported square width to the viewport', () =>
+  {
+    const v = new Viewport(1000, 500, 500);
+    expect(v.fit_square_width()).toBe(true);
+    expect(v.columns).toBeGreaterThan(1);
+    expect(v.rows).toBeGreaterThan(1);
+  });
+
   // 500x500 with 50px squares: 10x10 cells, no centring margin.
   const make = () => new Viewport(50, 500, 500);
 

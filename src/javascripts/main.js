@@ -686,7 +686,7 @@ class GameOfLife extends Viewport
         this.dark = settings.dark;
         this.edit = settings.edit;
         NAME.value = settings.name;
-        this.calculate_dimensions(0);
+        this.fit_square_width();
         this.loc();
         this.update_menus();
       }
