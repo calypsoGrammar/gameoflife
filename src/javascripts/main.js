@@ -182,6 +182,11 @@ xmlns="http://www.w3.org/2000/svg"
 />
 </svg>`;
 
+function hide_from_assistive_tech(root)
+{
+  root.querySelectorAll('svg').forEach(function(svg){ svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('focusable', 'false'); });
+}
+
 const NAV = document.getElementById("NAV");
 const MENU = document.getElementById("MENU");
 
@@ -234,6 +239,17 @@ MOVE_UP.innerHTML = svg_up.trim();
 MOVE_DOWN.innerHTML = svg_down.trim();
 MOVE_RIGHT.innerHTML = svg_right.trim();
 
+const STATUS = document.getElementById("STATUS");
+
+hide_from_assistive_tech(document.body);
+
+// Polite live-region message; cleared first so repeated text is re-announced.
+function announce(message)
+{
+  STATUS.textContent = '';
+  setTimeout(function(){ STATUS.textContent = message; }, 20);
+}
+
 const CANVAS = document.getElementById("CANVAS");
 const c = CANVAS.getContext("2d");
 
@@ -242,8 +258,8 @@ PAUSE.onclick = function(){ window.gol.stop() };
 STEP.onclick = function(){ window.gol.step() };
 RESET.onclick = function(){ window.gol.reset() };
 
-GRID.onclick = function(){ window.gol.toggle_grid() };
-THEME.onclick = function(){ window.gol.toggle_dark() };
+GRID.onclick = function(){ window.gol.toggle_grid(); GRID.setAttribute('aria-pressed', String(window.gol.grid)); };
+THEME.onclick = function(){ window.gol.toggle_dark(); THEME.setAttribute('aria-pressed', String(window.gol.dark)); };
 HIDE_CONTROLS.onclick = function(){ hide_controls() };
 COL.onchange = function() { window.gol.change_col() };
 DOWNLOAD.onclick = function(){ window.gol.download() };
@@ -252,11 +268,11 @@ IMPORT.addEventListener('change', function() {
   const selected = this.files[0];
   if(selected)
   {
-    FILE_TO_LOAD.innerHTML = selected.name;
+    FILE_TO_LOAD.textContent = 'Selected file: ' + selected.name;
   }
   else
   {
-    FILE_TO_LOAD.innerHTML = '';
+    FILE_TO_LOAD.textContent = '';
   }
 });
 LOAD.onclick = function(){ window.gol.import() };
@@ -292,12 +308,13 @@ class GameOfLife extends Viewport
 
     this.interval = null;
     this.generations = 0;
-    COUNT.innerHTML = this.generations;
+    COUNT.textContent = this.generations;
     this.dead_game = false;
 
     this.loc();
     this.alive = [];
     this.purgatory = [];
+    this.cursor = new Vector(0, 0);
     this.draw();
     this.update_menus();
   }
@@ -311,7 +328,7 @@ class GameOfLife extends Viewport
     clearTimeout(this.interval);
     this.interval = null;
     this.generations = 0;
-    COUNT.innerHTML = this.generations;
+    COUNT.textContent = this.generations;
     this.dead_game = false;
     this.square_width = 50;
 
@@ -326,11 +343,13 @@ class GameOfLife extends Viewport
     this.update_menus();
     PLAY.style.display = '';
     PAUSE.style.display = 'none';
+    this.cursor = new Vector(0, 0);
+    announce('Board reset. Generation 0');
   }
 
   loc()
   {
-    LOC.innerHTML = '(' + -this.offset_x + ', ' + -this.offset_y + ')';
+    LOC.textContent = '(' + -this.offset_x + ', ' + -this.offset_y + ')';
   }
 
   change_col()
@@ -349,6 +368,8 @@ class GameOfLife extends Viewport
     }
     PLAY.style.display = 'none';
     PAUSE.style.display = '';
+    this.move_focus(PAUSE);
+    announce('Simulation running');
   }
 
   // Chained timeouts instead of setInterval: a slow generation delays the next
@@ -374,6 +395,14 @@ class GameOfLife extends Viewport
     }
     PLAY.style.display = '';
     PAUSE.style.display = 'none';
+    this.move_focus(PLAY);
+    announce(this.dead_game ? 'Simulation stopped: the board is stable' : 'Simulation paused at generation ' + this.generations);
+  }
+
+  // The play/pause pair swap visibility; keep focus on the one that remains.
+  move_focus(button)
+  {
+    if(document.activeElement === PLAY || document.activeElement === PAUSE) button.focus();
   }
 
   step()
@@ -382,6 +411,7 @@ class GameOfLife extends Viewport
     this.iterate();
     PLAY.style.display = '';
     PAUSE.style.display = 'none';
+    announce('Generation ' + this.generations + ', ' + this.alive.length + ' live cells');
   }
 
   toggle_grid()
@@ -443,22 +473,57 @@ class GameOfLife extends Viewport
   {
     if(!this.edit) return;
     const cell = this.cell_at(x, y);
-    if(cell !== null)
-    {
-      let index = this.alive.findIndex(function(item)
-      {
-        return item.x === cell.x && item.y === cell.y;
-      });
-      if(index !== -1)
-      {
-        this.alive.splice(index, 1);
-      }
-      else
-      {
-        this.alive.push(new Square(cell.x, cell.y, 0));
-      }
-    }
+    if(cell !== null) this.toggle_cell(cell.x, cell.y);
     this.draw();
+  }
+
+  // Returns true when the cell is alive afterwards.
+  toggle_cell(x, y)
+  {
+    const index = this.alive.findIndex(function(item)
+    {
+      return item.x === x && item.y === y;
+    });
+    if(index !== -1)
+    {
+      this.alive.splice(index, 1);
+      return false;
+    }
+    this.alive.push(new Square(x, y, 0));
+    return true;
+  }
+
+  is_alive(x, y)
+  {
+    return this.alive.some(function(item){ return item.x === x && item.y === y; });
+  }
+
+  describe_cursor()
+  {
+    return 'Cell ' + this.cursor.x + ', ' + this.cursor.y + ', ' + (this.is_alive(this.cursor.x, this.cursor.y) ? 'alive' : 'empty');
+  }
+
+  // Keyboard equivalent of pointer editing and navigation.
+  move_cursor(dx, dy)
+  {
+    this.cursor.x += dx;
+    this.cursor.y += dy;
+    this.scroll_to_cell(this.cursor.x, this.cursor.y);
+    this.loc();
+    this.draw();
+    announce(this.describe_cursor());
+  }
+
+  toggle_cursor_cell()
+  {
+    if(!this.edit)
+    {
+      announce('Editing is locked while the simulation has run. Reset to edit cells.');
+      return;
+    }
+    const alive = this.toggle_cell(this.cursor.x, this.cursor.y);
+    this.draw();
+    announce('Cell ' + this.cursor.x + ', ' + this.cursor.y + (alive ? ' born' : ' removed'));
   }
 
   update_saved_click(x, y)
@@ -506,7 +571,7 @@ class GameOfLife extends Viewport
       return;
     }
     this.generations++;
-    COUNT.innerHTML = this.generations;
+    COUNT.textContent = this.generations;
   }
 
   count()
@@ -584,6 +649,18 @@ class GameOfLife extends Viewport
         this.square_width
         );
       }
+    }
+
+    if(document.activeElement === CANVAS)
+    {
+      c.lineWidth = 3;
+      c.strokeStyle = this.dark ? this.white : this.black;
+      c.strokeRect(
+        ( ( this.offset_x * this.square_width ) + this.offset_x_render + ( this.square_width * this.cursor.x ) ),
+        ( ( this.offset_y * this.square_width ) + this.offset_y_render + ( this.square_width * this.cursor.y ) ),
+        this.square_width,
+        this.square_width
+      );
     }
 
     if(this.debug)
@@ -720,6 +797,7 @@ function hide_controls()
 {
   if(CONTROLS.style.display === '') CONTROLS.style.display = 'none';
   else CONTROLS.style.display = '';
+  HIDE_CONTROLS.setAttribute('aria-pressed', String(CONTROLS.style.display === ''));
 }
 
 function resize()
@@ -748,8 +826,30 @@ document.addEventListener('wheel', function(event)
   }
 });
 
+CANVAS.addEventListener('focus', function(){ window.gol.draw(); });
+CANVAS.addEventListener('blur', function(){ window.gol.draw(); });
+
+const CURSOR_KEYS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+
+CANVAS.addEventListener('keydown', function(event)
+{
+  if(event.altKey || event.ctrlKey || event.metaKey) return;
+  if(event.key in CURSOR_KEYS)
+  {
+    event.preventDefault();
+    window.gol.move_cursor(...CURSOR_KEYS[event.key]);
+  }
+  else if(event.key === 'Enter' || event.key === ' ')
+  {
+    event.preventDefault();
+    window.gol.toggle_cursor_cell();
+  }
+});
+
 document.onkeydown = function(event)
 {
+  const target = event.target;
+  if(target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
   if(MENU.style.display === 'none')
   {
     if(event.key == "m") window.gol.zoom_in();
@@ -820,6 +920,14 @@ CANVAS.onmouseup = function(event)
     }
   }
 }
+
+// Keep the disclosure buttons' state and focus in step with the menu.
+new MutationObserver(function()
+{
+  const open = MENU.style.display !== 'none';
+  UP.setAttribute('aria-expanded', String(open));
+  DOWN.setAttribute('aria-expanded', String(open));
+}).observe(MENU, { attributes: true, attributeFilter: ['style'] });
 
 window.addEventListener("resize", resize);
 document.addEventListener("DOMContentLoaded", start);

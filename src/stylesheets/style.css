@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Keep a clearly visible keyboard focus indicator on every interactive control. */
+button:focus-visible,
+input:focus-visible,
+canvas:focus-visible {
+  outline: 3px solid #1919af;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px #fafafa;
+}
