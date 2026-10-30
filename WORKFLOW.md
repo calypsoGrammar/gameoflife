@@ -4,9 +4,9 @@
 # Archon never auto-merges a change to it. Every key is described in
 # archon-v3's docs/workflow-reference.md.
 tracker:
-  kind: linear
+  kind: chronology
   provider:
-    # Linear project "Game of Life".
+    # Work Registry project "Game of Life".
     project_id: "93b6543f-9b7f-43eb-af27-c6d626762095"
 hooks:
   # Each attempt starts from a fresh checkout; install dependencies so the
@@ -78,7 +78,7 @@ archon:
     default: sol
     fallback: opus
 ---
-You are working on Game of Life, Linear issue {{ issue.identifier }}: {{ issue.title }}.
+You are working on Game of Life, issue {{ issue.identifier }}: {{ issue.title }}.
 {% if attempt %}
 This is attempt {{ attempt }}. Earlier attempts were discarded, and this workspace is a fresh checkout.
 {% endif %}
