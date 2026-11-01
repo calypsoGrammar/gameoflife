@@ -27,8 +27,8 @@ archon:
     # evidence (archon-v3 docs/workflow-reference.md, Preview evidence), and a
     # Spiderweb review preview. The before_run hook has installed dependencies.
     # The preview is built with base / into node_modules/.preview-dist, which
-    # git ignores, so it is served from the root and the committed dist/ is left
-    # as it is. Python's static file server serves the build on the loopback
+    # git ignores, so it is served from the root and dist/ is left as it is.
+    # Python's static file server serves the build on the loopback
     # address.
     setup:
       - npx vite build --base=/ --outDir node_modules/.preview-dist --emptyOutDir
