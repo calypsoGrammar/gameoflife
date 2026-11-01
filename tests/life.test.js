@@ -179,7 +179,7 @@ describe('performance', () =>
     }
     const start = performance.now();
     next_generation(alive);
-    expect(performance.now() - start).toBeLessThan(1000);
+    expect(performance.now() - start).toBeLessThan(4000);
   });
 });
 

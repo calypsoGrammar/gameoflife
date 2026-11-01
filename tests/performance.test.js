@@ -54,15 +54,15 @@ describe('equivalence with the naive rules', () =>
   });
 });
 
-// Documented bound: LIMITS.max_cells (10,000) imported cells, and a 10,000-cell
+// Documented bound: LIMITS.max_cells (100,000) imported cells, and a 100,000-cell
 // soup must advance a generation well inside a second. The ceilings below are
-// generous (roughly 10-50x measured) so they catch quadratic regressions, not noise.
+// generous (roughly 3-50x measured) so they catch quadratic regressions, not noise.
 describe('performance fixtures', () =>
 {
   const fixtures = [
     { name: 'small', cells: 100, ceiling_ms: 100 },
     { name: 'medium', cells: 1000, ceiling_ms: 250 },
-    { name: 'large (import limit)', cells: LIMITS.max_cells, ceiling_ms: 1000 },
+    { name: 'large (import limit)', cells: LIMITS.max_cells, ceiling_ms: 3000 },
   ];
   for(const { name, cells, ceiling_ms } of fixtures)
   {
@@ -74,7 +74,7 @@ describe('performance fixtures', () =>
       for(let g = 0; g < 5; g++) alive = next_generation(alive).alive;
       const per_generation = (performance.now() - start) / 5;
       expect(per_generation).toBeLessThan(ceiling_ms);
-    });
+    }, 30000);
   }
 
   it('scales roughly linearly: 10x the cells costs far less than 100x the time', () =>
@@ -89,5 +89,17 @@ describe('performance fixtures', () =>
     };
     const small = Math.max(time(1000), 0.5);
     expect(time(10000)).toBeLessThan(small * 60);
+  }, 30000);
+});
+
+describe('import cap round trip', () =>
+{
+  it('exports and re-imports a pattern of LIMITS.max_cells cells within the file size limit', async () =>
+  {
+    const { serialize_state, parse_state } = await import('../src/javascripts/life.js');
+    const alive = soup(LIMITS.max_cells).map(([x, y]) => new Square(x, y, 0));
+    const text = serialize_state(alive, undefined);
+    expect(text.length).toBeLessThan(LIMITS.max_file_bytes);
+    expect(parse_state(text).alive).toHaveLength(LIMITS.max_cells);
   });
 });

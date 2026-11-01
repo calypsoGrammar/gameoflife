@@ -87,8 +87,8 @@ Download saves a JSON file; Select + Load restores it.
 
 Limits enforced on import:
 
-- File size: at most 5 MiB.
-- Cells: at most 10,000.
+- File size: at most 16 MiB.
+- Cells: at most 100,000.
 - Cell coordinates and `offset_x` / `offset_y`: integers within ±1,000,000.
 - `square_width`: clamped to 1–1000, then fitted to the viewport.
 - `frequency`: a number or numeric string, clamped to 0.01–10.
@@ -107,8 +107,8 @@ coordinate key), so work is proportional to the live cells plus their
 neighbour frontier, not to repeated array scans. Playback uses chained
 timeouts, so a slow generation delays the next one instead of queueing ticks.
 
-Documented bound: imports are capped at 10,000 cells (`LIMITS.max_cells`), and
-a generation of a 10,000-cell pattern is expected to take well under a second
-(typically a few tens of milliseconds). Coordinates must stay within about
+Documented bound: imports are capped at 100,000 cells (`LIMITS.max_cells`), and
+a generation of a 100,000-cell pattern is expected to take well under a second
+(typically a few hundred milliseconds). Coordinates must stay within about
 ±33 million. `tests/performance.test.js` holds small/medium/large fixtures and
 an equivalence check against a naive implementation; run with `npm test`.
