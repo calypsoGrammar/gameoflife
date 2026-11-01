@@ -403,3 +403,11 @@ export class Viewport
     this.calculate_dimensions(0);
   }
 }
+
+// File name (without extension) for a download: the user's name, or a
+// timestamp when the name is missing or blank.
+export function default_file_name(name, now = new Date())
+{
+  if(typeof name === 'string' && name.trim() !== '') return name.trim();
+  return now.toISOString().replace(/[-:]/g, "").replace(/[.]/g, "_");
+}

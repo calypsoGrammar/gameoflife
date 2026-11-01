@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   Square, Viewport, next_generation, count_neighbours, apply_rules,
-  serialize_state, parse_state, ImportError, LIMITS,
+  serialize_state, parse_state, ImportError, LIMITS, default_file_name,
 } from '../src/javascripts/life.js';
 
 const cells = (pairs) => pairs.map(([x, y]) => new Square(x, y, 0));
@@ -353,5 +353,17 @@ describe('Click and pan share one conversion', () =>
     for(let x = 5; x < 1920; x += 37)
       for(let y = 5; y < 1080; y += 41)
         expect(v.pan_cell_at(x, y)).toEqual(v.cell_at(x, y));
+  });
+});
+
+describe('default_file_name', () =>
+{
+  const now = new Date('2026-01-02T03:04:05.678Z');
+  it('uses the given name', () => expect(default_file_name('glider', now)).toBe('glider'));
+  it('falls back to a timestamp for empty or blank names', () =>
+  {
+    expect(default_file_name('', now)).toBe('20260102T030405_678Z');
+    expect(default_file_name('   ', now)).toBe('20260102T030405_678Z');
+    expect(default_file_name(null, now)).toBe('20260102T030405_678Z');
   });
 });
