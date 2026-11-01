@@ -4,7 +4,7 @@ A static Conway's Game of Life simulator built with Vite, Alpine and Tailwind CS
 
 ## Requirements
 
-Node.js `^20.19.0 || >=22.12.0` (required by Vite 8) and npm. CI uses Node 22.
+Node.js `^20.19.0 || >=22.12.0` (required by Vite 8; jsdom 28 accepts the same range) and npm. CI uses Node 22.
 
 ## Local setup
 
