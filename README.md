@@ -4,7 +4,7 @@ A static Conway's Game of Life simulator built with Vite, Alpine and Tailwind CS
 
 ## Requirements
 
-Node.js `^20.19.0 || >=22.12.0` (required by Vite 8) and npm. CI uses Node 22.
+Node.js `^20.19.0 || >=22.12.0` (required by Vite 8; jsdom 28 accepts the same range) and npm. CI uses Node 22.
 
 ## Local setup
 
@@ -64,6 +64,7 @@ Download saves a JSON file; Select + Load restores it.
 
 ```json
 {
+  "version": 1,
   "alive": [{ "x": 0, "y": 0, "count": 0 }],
   "settings": {
     "generations": 0,
@@ -80,8 +81,23 @@ Download saves a JSON file; Select + Load restores it.
 }
 ```
 
-- `alive`: live cells at integer grid coordinates (`x` right, `y` down, may be negative). `count` is the neighbour count and is recomputed on each step.
-- `settings`: all fields are applied together when present. Either section may be omitted; a missing section is skipped with a console warning, and invalid JSON logs an error and changes nothing.
+- `version`: written as `1`. A file without `version` is read as version 1; any other value is rejected.
+- `alive`: live cells at integer grid coordinates (`x` right, `y` down, may be negative). `count` is the neighbour count (0–8, optional) and is recomputed on each step. Duplicate cells are rejected.
+- `settings`: all fields are applied together when present. Either section may be omitted; an omitted section is skipped silently and the current value is kept.
+
+Limits enforced on import:
+
+- File size: at most 5 MiB.
+- Cells: at most 10,000.
+- Cell coordinates and `offset_x` / `offset_y`: integers within ±1,000,000.
+- `square_width`: clamped to 1–1000, then fitted to the viewport.
+- `frequency`: a number or numeric string, clamped to 0.01–10.
+- `name`: text of at most 255 characters.
+- `col`: a `#rrggbb` colour.
+- `grid`, `dark`, `edit`: booleans.
+- `generations`: a non-negative integer.
+
+Any failure (invalid JSON, an unsupported version, a limit exceeded, a duplicate cell, a wrongly typed field) shows an alert and leaves the board unchanged; nothing is applied from a file that does not fully validate.
 
 ## Performance
 
