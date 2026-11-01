@@ -285,7 +285,7 @@ MOVE_DOWN.onclick = function(){ window.gol.move_offset('s') };
 ZOOM_OUT.onclick = function(){ window.gol.zoom_out() };
 ZOOM_IN.onclick = function(){ window.gol.zoom_in() };
 
-import { Square, Vector, Viewport, count_neighbours, apply_rules, serialize_state, parse_state, ImportError, LIMITS } from './life.js';
+import { Square, Vector, Viewport, count_neighbours, apply_rules, serialize_state, parse_state, ImportError, LIMITS, default_file_name } from './life.js';
 
 class GameOfLife extends Viewport
 {
@@ -717,9 +717,7 @@ class GameOfLife extends Viewport
       return;
     }
 
-    let file_name = '';
-    if(NAME.value === null) file_name = new Date().toISOString().replace(/[-:]/g, "").replace(/[.]/g, "_");
-    else file_name = NAME.value;
+    const file_name = default_file_name(NAME.value);
 
     const settings = {
       generations:this.generations,
