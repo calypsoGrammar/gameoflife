@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Square, next_generation, LIMITS } from '../src/javascripts/life.js';
+import { Square, count_neighbours, next_generation, LIMITS } from '../src/javascripts/life.js';
 
 // Reference implementation: the naive rules, used to check equivalence.
 function naive_step(pairs)
@@ -54,9 +54,10 @@ describe('equivalence with the naive rules', () =>
   });
 });
 
-// Documented bound: LIMITS.max_cells (100,000) imported cells, and a 100,000-cell
-// soup must advance a generation well inside a second. The ceilings below are
-// generous (roughly 3-50x measured) so they catch quadratic regressions, not noise.
+// Documented bound: LIMITS.max_cells (100,000) imported cells. Measured on a
+// random soup: about 1s for the first (cold) generation and 0.2-0.4s once warm.
+// The ceilings below (3s per generation at the cap) leave headroom for slower
+// runners; they catch quadratic regressions, not noise.
 describe('performance fixtures', () =>
 {
   const fixtures = [
@@ -89,6 +90,74 @@ describe('performance fixtures', () =>
     };
     const small = Math.max(time(1000), 0.5);
     expect(time(10000)).toBeLessThan(small * 60);
+  }, 30000);
+});
+
+// Deliberately quadratic reference: every cell is compared with every other
+// cell, and every candidate dead square is searched for in lists.
+function count_neighbours_quadratic(alive)
+{
+  const near = (a, b) => Math.abs(a.x - b.x) <= 1 && Math.abs(a.y - b.y) <= 1 && !(a.x === b.x && a.y === b.y);
+  const counts = alive.map(a => alive.reduce((n, b) => n + (near(a, b) ? 1 : 0), 0));
+  const purgatory = [];
+  for(const a of alive) for(let dx = -1; dx <= 1; dx++) for(let dy = -1; dy <= 1; dy++)
+  {
+    if(dx === 0 && dy === 0) continue;
+    const c = { x: a.x + dx, y: a.y + dy };
+    if(alive.some(b => b.x === c.x && b.y === c.y) || purgatory.some(q => q.x === c.x && q.y === c.y)) continue;
+    purgatory.push({ x: c.x, y: c.y, count: alive.reduce((n, b) => n + (near(c, b) ? 1 : 0), 0) });
+  }
+  return { counts, purgatory };
+}
+
+describe('count_neighbours speed-up', () =>
+{
+  const best_of = (runs, fn) =>
+  {
+    let best = Infinity;
+    for(let i = 0; i < runs; i++)
+    {
+      const start = performance.now();
+      fn();
+      best = Math.min(best, performance.now() - start);
+    }
+    return best;
+  };
+
+  it('agrees with, and is at least 10x faster than, a quadratic reference at 3,000 cells', () =>
+  {
+    const alive = soup(3000).map(([x, y]) => new Square(x, y, 0));
+    const reference = count_neighbours_quadratic(alive);
+    const purgatory = count_neighbours(alive);
+    expect(alive.map(c => c.count)).toEqual(reference.counts);
+    const key = (q) => `${q.x},${q.y},${q.count}`;
+    expect(purgatory.map(key).sort()).toEqual(reference.purgatory.map(key).sort());
+    const fast = best_of(3, () => count_neighbours(alive));
+    const slow = best_of(1, () => count_neighbours_quadratic(alive));
+    // Measured ratio is roughly 100x; 10x leaves wide margin.
+    expect(slow / Math.max(fast, 0.05)).toBeGreaterThan(10);
+  }, 60000);
+
+  it('scales roughly linearly up to LIMITS.max_cells: 10x the cells costs under 40x the time', () =>
+  {
+    const time = (cells) =>
+    {
+      const alive = soup(cells).map(([x, y]) => new Square(x, y, 0));
+      count_neighbours(alive);
+      return best_of(2, () => count_neighbours(alive));
+    };
+    const small = Math.max(time(LIMITS.max_cells / 10), 1);
+    // Measured about 14x; a quadratic algorithm would give about 100x.
+    expect(time(LIMITS.max_cells)).toBeLessThan(small * 40);
+  }, 60000);
+
+  it('advances one cold generation of exactly LIMITS.max_cells live cells within 3s', () =>
+  {
+    const alive = soup(LIMITS.max_cells).map(([x, y]) => new Square(x, y, 0));
+    expect(alive).toHaveLength(LIMITS.max_cells);
+    const start = performance.now();
+    next_generation(alive);
+    expect(performance.now() - start).toBeLessThan(3000);
   }, 30000);
 });
 

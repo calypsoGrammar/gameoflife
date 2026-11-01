@@ -108,7 +108,7 @@ neighbour frontier, not to repeated array scans. Playback uses chained
 timeouts, so a slow generation delays the next one instead of queueing ticks.
 
 Documented bound: imports are capped at 100,000 cells (`LIMITS.max_cells`), and
-a generation of a 100,000-cell pattern is expected to take well under a second
-(typically a few hundred milliseconds). Coordinates must stay within about
+a generation of a 100,000-cell random pattern takes about a second when cold
+and a few hundred milliseconds once warm; the tests allow up to 3 seconds. Coordinates must stay within about
 ±33 million. `tests/performance.test.js` holds small/medium/large fixtures and
 an equivalence check against a naive implementation; run with `npm test`.

@@ -179,6 +179,7 @@ describe('performance', () =>
     }
     const start = performance.now();
     next_generation(alive);
+    // Cold first step at the 100,000-cell cap measured ~1-1.5s under parallel test load.
     expect(performance.now() - start).toBeLessThan(4000);
   });
 });
