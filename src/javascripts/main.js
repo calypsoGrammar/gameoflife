@@ -719,7 +719,7 @@ class GameOfLife extends Viewport
 
     let file_name = '';
     if(NAME.value === null) file_name = new Date().toISOString().replace(/[-:]/g, "").replace(/[.]/g, "_");
-    else file_name = NAME.value;
+    else file_name = NAME.value.slice(0, LIMITS.max_name_length);
 
     const settings = {
       generations:this.generations,
