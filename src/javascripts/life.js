@@ -191,7 +191,10 @@ function validate_settings(s)
   {
     throw new ImportError('Colour must be a hex value like #af1919.');
   }
-  const frequency = typeof s.frequency === 'string' && s.frequency.trim() !== '' ? Number(s.frequency) : s.frequency;
+  const blank_frequency = s.frequency === undefined || s.frequency === null
+    || (typeof s.frequency === 'string' && s.frequency.trim() === '');
+  const frequency = blank_frequency ? 1
+    : typeof s.frequency === 'string' ? Number(s.frequency) : s.frequency;
   if(typeof frequency !== 'number' || !Number.isFinite(frequency))
   {
     throw new ImportError('Frequency must be a number.');
@@ -370,6 +373,7 @@ export class Viewport
 
   zoom_out()
   {
+    if(this.square_width / 2 < LIMITS.min_square_width) return;
     this.square_width /= 2;
     let check = this.calculate_dimensions(2);
     if(check === false)

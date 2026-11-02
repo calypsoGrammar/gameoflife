@@ -91,6 +91,21 @@ describe('import/export', () =>
     expect(parsed.settings).toEqual(settings);
   });
 
+  it('round-trips an empty frequency as the default', () =>
+  {
+    const parsed = parse_state(serialize_state([], { ...settings, frequency: '' }));
+    expect(parsed.settings.frequency).toBe('1');
+  });
+
+  it('round-trips a zoomed-out square_width', () =>
+  {
+    const v = new Viewport(1, 1000, 500);
+    v.zoom_out();
+    expect(v.square_width).toBeGreaterThanOrEqual(LIMITS.min_square_width);
+    const parsed = parse_state(serialize_state([], { ...settings, square_width: v.square_width }));
+    expect(parsed.settings.square_width).toBe(v.square_width);
+  });
+
   it('reports missing sections as null', () =>
   {
     expect(parse_state('{}')).toEqual({ alive: null, settings: null });
