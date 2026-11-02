@@ -717,7 +717,7 @@ class GameOfLife extends Viewport
       return;
     }
 
-    const file_name = default_file_name(NAME.value);
+    const file_name = default_file_name(NAME.value).slice(0, LIMITS.max_name_length);
 
     const settings = {
       generations:this.generations,
