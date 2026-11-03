@@ -230,6 +230,25 @@ describe('viewport', () =>
     expect(v.cell_at(3, 100)).toBeNull();
   });
 
+  it('checks y against the height, not the width, on non-square viewports', () =>
+  {
+    // Wide: 1000x500, no margins. y between height and width must be outside.
+    const wide = new Viewport(50, 1000, 500);
+    expect(wide.in_bounds(500, 499)).toBe(true);
+    expect(wide.in_bounds(500, 501)).toBe(false);
+    expect(wide.cell_at(500, 700)).toBeNull();
+    expect(wide.pan_cell_at(500, 700)).toBeNull();
+    expect(wide.cell_at(500, 495)).toMatchObject({ x: 10, y: 9 });
+    // Tall: 500x1000. x between width and height must be outside.
+    const tall = new Viewport(50, 500, 1000);
+    expect(tall.in_bounds(499, 900)).toBe(true);
+    expect(tall.in_bounds(501, 900)).toBe(false);
+    // With margins: 1020x530 -> margin_y 15; bottom edge at 515.
+    const margin = new Viewport(50, 1020, 530);
+    expect(margin.in_bounds(500, 514)).toBe(true);
+    expect(margin.in_bounds(500, 516)).toBe(false);
+  });
+
   it('accounts for the pan offset when mapping', () =>
   {
     const v = make();
