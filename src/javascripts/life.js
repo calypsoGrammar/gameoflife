@@ -115,7 +115,7 @@ export function next_generation(alive)
 // Import/export. `data` is { version, alive: [{x, y, count}], settings: {...} }.
 export const STATE_VERSION = 1;
 export const LIMITS = {
-  max_file_bytes: 16 * 1024 * 1024,
+  max_file_bytes: 5 * 1024 * 1024,
   max_cells: 100000,
   max_coordinate: 1000000,
   max_offset: 1000000,
