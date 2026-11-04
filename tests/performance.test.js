@@ -172,4 +172,19 @@ describe('import cap round trip', () =>
     expect(text.length).toBeLessThan(LIMITS.max_file_bytes);
     expect(parse_state(text).alive).toHaveLength(LIMITS.max_cells);
   });
+
+  it('round-trips the worst case: max cells at the coordinate extremes with full settings', async () =>
+  {
+    const { serialize_state, parse_state } = await import('../src/javascripts/life.js');
+    const m = LIMITS.max_coordinate;
+    const alive = Array.from({ length: LIMITS.max_cells }, (_, i) => new Square(-m + i, -m, 0));
+    const settings = {
+      generations: LIMITS.max_generations, col: '#af1919', offset_x: -m, offset_y: -m,
+      square_width: LIMITS.max_square_width, frequency: String(LIMITS.max_frequency),
+      grid: true, dark: false, name: 'x'.repeat(LIMITS.max_name_length), edit: false,
+    };
+    const text = serialize_state(alive, settings);
+    expect(text.length).toBeLessThan(LIMITS.max_file_bytes);
+    expect(parse_state(text).alive).toHaveLength(LIMITS.max_cells);
+  });
 });
