@@ -138,7 +138,7 @@ export class ImportError extends Error
 
 export function serialize_state(alive, settings)
 {
-  return JSON.stringify({ version: STATE_VERSION, alive, settings }, null, 2);
+  return JSON.stringify({ version: STATE_VERSION, alive, settings });
 }
 
 const is_plain_object = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);

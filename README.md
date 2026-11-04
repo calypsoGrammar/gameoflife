@@ -87,7 +87,7 @@ Download saves a JSON file; Select + Load restores it.
 
 Limits enforced on import:
 
-- File size: at most 16 MiB.
+- File size: at most 5 MiB.
 - Cells: at most 100,000.
 - Cell coordinates and `offset_x` / `offset_y`: integers within ±1,000,000.
 - `square_width`: clamped to 1–1000, then fitted to the viewport.
@@ -109,6 +109,6 @@ timeouts, so a slow generation delays the next one instead of queueing ticks.
 
 Documented bound: imports are capped at 100,000 cells (`LIMITS.max_cells`), and
 a generation of a 100,000-cell random pattern takes about a second when cold
-and a few hundred milliseconds once warm; the tests allow up to 3 seconds. Coordinates must stay within about
+and a few hundred milliseconds once warm; the tests allow up to 4 seconds per generation (15 seconds for a cold first step). Coordinates must stay within about
 ±33 million. `tests/performance.test.js` holds small/medium/large fixtures and
 an equivalence check against a naive implementation; run with `npm test`.

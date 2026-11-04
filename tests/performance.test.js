@@ -164,13 +164,26 @@ describe('count_neighbours speed-up', () =>
 
 describe('import cap round trip', () =>
 {
-  it('imports a compact file of LIMITS.max_cells cells within the file size limit', async () =>
+  it('exports and re-imports a pattern of LIMITS.max_cells cells within the file size limit', async () =>
   {
     const { serialize_state, parse_state } = await import('../src/javascripts/life.js');
     const alive = soup(LIMITS.max_cells).map(([x, y]) => new Square(x, y, 0));
-    // The pretty-printed export of this many cells exceeds the 5 MB file limit,
-    // so check the cap with the same data written without indentation.
-    const text = JSON.stringify(JSON.parse(serialize_state(alive, undefined)));
+    const text = serialize_state(alive, undefined);
+    expect(text.length).toBeLessThan(LIMITS.max_file_bytes);
+    expect(parse_state(text).alive).toHaveLength(LIMITS.max_cells);
+  });
+
+  it('round-trips the worst case: max cells at the coordinate extremes with full settings', async () =>
+  {
+    const { serialize_state, parse_state } = await import('../src/javascripts/life.js');
+    const m = LIMITS.max_coordinate;
+    const alive = Array.from({ length: LIMITS.max_cells }, (_, i) => new Square(-m + i, -m, 0));
+    const settings = {
+      generations: LIMITS.max_generations, col: '#af1919', offset_x: -m, offset_y: -m,
+      square_width: LIMITS.max_square_width, frequency: String(LIMITS.max_frequency),
+      grid: true, dark: false, name: 'x'.repeat(LIMITS.max_name_length), edit: false,
+    };
+    const text = serialize_state(alive, settings);
     expect(text.length).toBeLessThan(LIMITS.max_file_bytes);
     expect(parse_state(text).alive).toHaveLength(LIMITS.max_cells);
   });

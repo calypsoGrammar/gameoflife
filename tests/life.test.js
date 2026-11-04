@@ -175,6 +175,22 @@ describe('import/export', () =>
     expect(parse_state(withCells([{ x: m, y: -m }])).alive).toHaveLength(1);
   });
 
+  it('uses the decided import limits', () =>
+  {
+    expect(LIMITS.max_file_bytes).toBe(5 * 1024 * 1024);
+    expect(LIMITS.max_cells).toBe(100000);
+    expect(LIMITS.max_coordinate).toBe(1000000);
+  });
+
+  it('rejects files over the size limit and accepts one exactly at it', () =>
+  {
+    const doc = '{"alive":[]}';
+    const exact = doc + ' '.repeat(LIMITS.max_file_bytes - doc.length);
+    expect(exact).toHaveLength(LIMITS.max_file_bytes);
+    expect(parse_state(exact).alive).toEqual([]);
+    expect(() => parse_state(exact + ' ')).toThrow(/too large/);
+  });
+
   it('rejects oversized cell arrays', () =>
   {
     const many = Array.from({ length: LIMITS.max_cells + 1 }, (_, i) => ({ x: i, y: 0, count: 0 }));
