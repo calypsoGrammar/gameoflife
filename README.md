@@ -25,28 +25,17 @@ npm run preview   # serve the production build locally
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs on every pull request and on pushes to `main`: `npm ci`, `npm test`, `npm run build`. It also supports manual runs from the Actions tab. A failing test or build fails the check and prevents deployment. Pull requests only test and build; successful runs on `main` also deploy.
+`.github/workflows/ci.yml` runs on every pull request and on pushes to `main`: `npm ci`, `npm test`, `npm run build`. It also supports manual runs from the Actions tab. CI never publishes. A commit can only be published once its `test-and-build` check has passed on `main`.
 
 ## Deployment (GitHub Pages)
 
 The expected site URL is https://calypsoGrammar.github.io/gameoflife/. Keep `base: '/gameoflife/'` in `vite.config.js` so asset URLs work under the repository path.
 
-### One-time setup
+Publishing is by hand: **Actions → deploy → Run workflow**, with **Dry run** unticked. `.github/workflows/deploy.yml` calls the shared Pages deploy in `calypsoGrammar/deploy-workflows`, which refuses a commit that is not on `main` or whose `test-and-build` check did not pass, installs locked dependencies, builds a fresh `dist/` and publishes it. Merging to `main` does not publish. A dry run (the default) builds and checks without publishing. Pages must keep **Settings → Pages → Source** set to **GitHub Actions**.
 
-1. In [Settings → Pages](https://github.com/calypsoGrammar/gameoflife/settings/pages), set **Build and deployment → Source** to **GitHub Actions**. Replace any existing branch-based source; no generated starter workflow is needed.
-2. In **Settings → Actions → General**, ensure Actions are enabled and repository policy allows the `actions/checkout`, `actions/setup-node`, `actions/configure-pages`, `actions/upload-pages-artifact` and `actions/deploy-pages` actions used by the workflow.
-3. Merge the deployment workflow into `main`. That push starts the first deployment. If the workflow was merged before Pages was configured, open **Actions → CI → Run workflow**, select `main` and run it again.
-4. Check that both `test-and-build` and `deploy` succeed. The `deploy` job reports the published URL. The `github-pages` environment is created automatically if absent; if it already has deployment branch rules, allow `main`. Required reviewers on that environment will make each deployment wait for approval.
+To roll back, run the same workflow with an earlier commit or tag as `ref`, or tick **rollback** with `ref` empty to publish the `stable` tag. A rollback holds later deploys until the hold is cleared (**Actions → stable → Run workflow → clear-hold**). `stable.yml` moves the `stable` tag to a release once it has been live for 48 hours.
 
-No personal access token or repository secret is needed. The workflow grants Pages and OIDC write permissions only to the deployment job; the test/build job has read-only repository access. Do not enable broad write permissions globally.
-
-### Future releases and recovery
-
-Every push or merged pull request to `main` installs locked dependencies, runs tests, builds fresh `dist/` output and deploys that artifact. The checked-in `dist/` files are not the deployment source. There is no manual subtree push or `gh-pages` branch maintenance.
-
-To redeploy, use **Actions → CI → Run workflow → main**. Manual runs on other branches can test and build but cannot publish. Deployments are serialized and an active deployment is allowed to finish. To roll back, revert the faulty change through a pull request and merge it into `main`; the same workflow tests and publishes the reverted source.
-
-If deployment fails, check the `deploy` job logs, the Pages source setting and the `github-pages` environment rules. A failed test/build skips deployment and leaves the previously published site in place.
+If deployment fails, check the deploy run's logs, the Pages source setting and the `github-pages` environment rules. A failed build or check skips publishing and leaves the previously published site in place.
 
 ## Controls
 

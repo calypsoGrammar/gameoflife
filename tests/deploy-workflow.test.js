@@ -1,30 +1,30 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 
-const workflow = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8');
+const ci = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8');
+const deploy = readFileSync(new URL('../.github/workflows/deploy.yml', import.meta.url), 'utf8');
 
-describe('GitHub Pages deployment workflow', () =>
+describe('GitHub Pages deployment workflows', () =>
 {
-  it('runs on pushes to main', () =>
+  it('CI tests and builds on pull requests and main without publishing', () =>
   {
-    expect(workflow).toMatch(/push:\s*\n\s*branches: \[main\]/);
+    expect(ci).toMatch(/push:\s*\n\s*branches: \[main\]/);
+    expect(ci).toContain('run: npm test');
+    expect(ci).toContain('run: npm run build');
+    expect(ci).not.toMatch(/pages|deploy|id-token/);
   });
 
-  it('builds and uploads dist/ as the Pages artifact', () =>
+  it('publishes only when run by hand, through the shared Pages workflow', () =>
   {
-    expect(workflow).toContain('run: npm run build');
-    expect(workflow).toMatch(/upload-pages-artifact@[\w.]+\s*\n\s*with:\s*\n\s*path: dist/);
+    expect(deploy).toMatch(/^on:\s*\n\s*workflow_dispatch:/m);
+    expect(deploy).not.toMatch(/^\s*(push|pull_request|schedule):/m);
+    expect(deploy).toMatch(/uses: calypsoGrammar\/deploy-workflows\/\.github\/workflows\/github-pages\.yml@v\d+/);
   });
 
-  it('deploys only after tests and build, and only from main', () =>
+  it('requires the CI job and publishes the fresh dist/ build', () =>
   {
-    expect(workflow).toMatch(/deploy:\s*\n\s*if: github\.ref == 'refs\/heads\/main' && github\.event_name != 'pull_request'\s*\n\s*needs: test-and-build/);
-    expect(workflow).toContain('actions/deploy-pages@');
-  });
-
-  it('grants Pages write permissions only to the deploy job', () =>
-  {
-    expect(workflow.match(/pages: write/g)).toHaveLength(1);
-    expect(workflow.indexOf('pages: write')).toBeGreaterThan(workflow.indexOf('deploy:'));
+    expect(deploy).toMatch(/required_checks: \|\s*\n\s*test-and-build\s*\n/);
+    expect(deploy).toContain('npm run build');
+    expect(deploy).toMatch(/site_path: dist/);
   });
 });
