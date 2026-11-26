@@ -1,6 +1,6 @@
 # Game of Life
 
-A static Conway's Game of Life simulator built with Vite, Alpine and Tailwind CSS 3, published on GitHub Pages at `/gameoflife/`.
+A static Conway's Game of Life simulator built with Vite, Alpine and Tailwind CSS 3, published on Cloudflare Pages at <https://gameoflife.calypsogrammar.com/>.
 
 ## Requirements
 
@@ -21,21 +21,21 @@ npm run preview   # serve the production build locally
 - `src/javascripts/life.js` – DOM-free logic: Conway rules, import/export, viewport (pan/zoom/coordinate mapping).
 - `src/javascripts/main.js` – DOM wiring, canvas drawing, controls.
 - `tests/life.test.js` – regression tests (still lifes, blinker, glider, import/export round-trip, viewport).
-- `vite.config.js` – sets `base: '/gameoflife/'` for GitHub Pages.
+- `vite.config.js` – sets `base: '/gameoflife/'` (the old GitHub Pages path); the deploy builds with `--base=/` for the subdomain.
 
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs on every pull request and on pushes to `main`: `npm ci`, `npm test`, `npm run build`. It also supports manual runs from the Actions tab. CI never publishes. A commit can only be published once its `test-and-build` check has passed on `main`.
 
-## Deployment (GitHub Pages)
+## Deployment (Cloudflare Pages)
 
-The expected site URL is https://calypsoGrammar.github.io/gameoflife/. Keep `base: '/gameoflife/'` in `vite.config.js` so asset URLs work under the repository path.
+The site URL is https://gameoflife.calypsogrammar.com/. It is served at the root of the subdomain, so the deploy builds with `npm run build -- --base=/`.
 
-Publishing is by hand: **Actions → deploy → Run workflow**, with **Dry run** unticked. `.github/workflows/deploy.yml` calls the shared Pages deploy in `calypsoGrammar/deploy-workflows`, which refuses a commit that is not on `main` or whose `test-and-build` check did not pass, installs locked dependencies, builds a fresh `dist/` and publishes it. Merging to `main` does not publish. A dry run (the default) builds and checks without publishing. Pages must keep **Settings → Pages → Source** set to **GitHub Actions**.
+Publishing is by hand: **Actions → deploy → Run workflow**, with **Dry run** unticked. `.github/workflows/deploy.yml` calls the shared Cloudflare Pages deploy in `calypsoGrammar/deploy-workflows`, which refuses a commit that is not on `main` or whose `test-and-build` check did not pass, installs locked dependencies, builds a fresh `dist/` and uploads it. Merging to `main` does not publish. A dry run (the default) builds and checks without publishing. The repository needs the `CLOUDFLARE_API_TOKEN` secret and the `CLOUDFLARE_ACCOUNT_ID` variable.
 
 To roll back, run the same workflow with an earlier commit or tag as `ref`, or tick **rollback** with `ref` empty to publish the `stable` tag. A rollback holds later deploys until the hold is cleared (**Actions → stable → Run workflow → clear-hold**). `stable.yml` moves the `stable` tag to a release once it has been live for 48 hours.
 
-If deployment fails, check the deploy run's logs, the Pages source setting and the `github-pages` environment rules. A failed build or check skips publishing and leaves the previously published site in place.
+If deployment fails, check the deploy run's logs and the Cloudflare secret and variable. A failed build or check skips publishing and leaves the previously published site in place.
 
 ## Controls
 

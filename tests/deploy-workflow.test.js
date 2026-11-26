@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 const ci = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8');
 const deploy = readFileSync(new URL('../.github/workflows/deploy.yml', import.meta.url), 'utf8');
 
-describe('GitHub Pages deployment workflows', () =>
+describe('Cloudflare Pages deployment workflows', () =>
 {
   it('CI tests and builds on pull requests and main without publishing', () =>
   {
@@ -14,17 +14,18 @@ describe('GitHub Pages deployment workflows', () =>
     expect(ci).not.toMatch(/pages|deploy|id-token/);
   });
 
-  it('publishes only when run by hand, through the shared Pages workflow', () =>
+  it('publishes only when run by hand, through the shared Cloudflare Pages workflow', () =>
   {
     expect(deploy).toMatch(/^on:\s*\n\s*workflow_dispatch:/m);
     expect(deploy).not.toMatch(/^\s*(push|pull_request|schedule):/m);
-    expect(deploy).toMatch(/uses: calypsoGrammar\/deploy-workflows\/\.github\/workflows\/github-pages\.yml@v\d+/);
+    expect(deploy).toMatch(/uses: calypsoGrammar\/deploy-workflows\/\.github\/workflows\/cloudflare-pages\.yml@v\d+/);
   });
 
-  it('requires the CI job and publishes the fresh dist/ build', () =>
+  it('requires the CI job and publishes a fresh build for the root of gameoflife.calypsogrammar.com', () =>
   {
     expect(deploy).toMatch(/required_checks: \|\s*\n\s*test-and-build\s*\n/);
-    expect(deploy).toContain('npm run build');
-    expect(deploy).toMatch(/site_path: dist/);
+    expect(deploy).toContain('npm run build -- --base=/');
+    expect(deploy).toMatch(/project_name: gameoflife\n/);
+    expect(deploy).toContain('site_url: https://gameoflife.calypsogrammar.com');
   });
 });
